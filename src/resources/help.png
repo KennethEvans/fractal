@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Fractal Browser Help</title>
+</head>
+<body>
+<h1 align="center">Fractal Browser</h1>
+<p>Fractal Browser allows you to manipulate a fractal image. The most useful operation is Crop, which allows you to &quot;zoom&quot; in on different parts of the image. However, the image is recalculated. You do not really zoom. You can try the other options to see what happens. There are tool tips to provide help for most of the  controls until a more detailed help manual is created. </p>
+<p> You can save the image as a new file and do Cut, Copy,
+  and Paste. Some image manipulation is available from 
+  the Image menu.  These operations only affect the current image 
+  and are lost when the image is recalculated.  You might 
+  use them before saving.</p>
+<p> The image formats you can use to save will depend on 
+  whether Java Advanced Imaging JAI and JAI ImageIO) is 
+  installed.  You can see the available formats under the 
+  Info menu. </p>
+<h3>Accelerator keys:</h3>
+<ul>
+  <li>Undo: Ctrl-Z </li>
+  <li>Redo: Ctrl-Y </li>
+  <li>Copy: Ctrl-C </li>
+  <li>Paste: Ctrl-V </li>
+  <li>Paste and Print: Ctrl-B </li>
+  <li>Print: Ctrl-P </li>
+  <li>Always Fit: Ctrl-F </li>
+  <li>Save: Ctrl-S </li>
+  <li>Restore: Ctrl-R </li>
+  <li>Crop: Ctrl-D </li>
+</ul>
+<h3>Mouse:</h3>
+<ul>
+  <li>Drag: Set rectangle </li>
+  <li>Double click: Remove rectangle </li>
+  <li>Shift-click: Zoom In </li>
+  <li>Ctrl-click: Zoom Out </li>
+  <li>Alt-click: Zoom Reset</li>
+</ul>
+</body>
+</html>

@@ -29,35 +29,35 @@ public class UndoableComponentEdit extends AbstractUndoableEdit
     }
 
     public void undo() {
-        // DEBUG
-        System.out.println("undo (Before): " + getPresentationName()
-            + " newValue=" + newValue);
+//        // DEBUG
+//        System.out.println("undo (Before): " + getPresentationName()
+//            + " newValue=" + newValue);
         super.undo();
         if(component instanceof JTextField) {
             ((JTextField)component).setText(oldValue);
             postEnterEvent();
         }
-        // DEBUG
-        System.out.println("undo (After): " + getPresentationName()
-            + " oldValue=" + oldValue);
+//        // DEBUG
+//        System.out.println("undo (After): " + getPresentationName()
+//            + " oldValue=" + oldValue);
     }
 
     public void redo() {
-        // DEBUG
-        System.out.println("redo (Before): " + getPresentationName()
-            + " newValue=" + newValue);
+//        // DEBUG
+//        System.out.println("redo (Before): " + getPresentationName()
+//            + " newValue=" + newValue);
         super.redo();
         if(component instanceof JTextField) {
             ((JTextField)component).setText(newValue);
             postEnterEvent();
         }
-        // DEBUG
-        System.out.println("redo (After): " + getPresentationName()
-            + " newValue=" + newValue);
+        // // DEBUG
+        // System.out.println("redo (After): " + getPresentationName()
+        // + " newValue=" + newValue);
     }
 
     /**
-     * Sets the focus to the state and sends a VK_ENTER event to cause it to
+     * Sets the focus to the fractalModel and sends a VK_ENTER event to cause it to
      * execute its actionPerformed method.
      */
     public void postEnterEvent() {

@@ -10,7 +10,7 @@ import java.awt.Color;
 public class ColorSchemes
 {
     public static ColorScheme makeRainbowScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme(nColors) {
+        ColorScheme scheme = new ColorScheme("Rainbow", nColors) {
             public Color defineColor(int index, int nColors) {
                 if(nColors <= 1) {
                     return Color.BLACK;
@@ -72,7 +72,7 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeLinearScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme(nColors) {
+        ColorScheme scheme = new ColorScheme("Linear", nColors) {
             public Color defineColor(int index, int nColors) {
                 if(nColors <= 1) {
                     return Color.BLACK;
@@ -89,7 +89,7 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeReverseLinearScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme(nColors) {
+        ColorScheme scheme = new ColorScheme("Reverse Linear",nColors) {
             public Color defineColor(int index, int nColors) {
                 if(nColors <= 1) {
                     return Color.BLACK;
@@ -110,7 +110,7 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeBWScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme(nColors) {
+        ColorScheme scheme = new ColorScheme("B&W",nColors) {
             public Color defineColor(int index, int nColors) {
                 if(index % 2 == 0) {
                     return Color.BLACK;
@@ -123,7 +123,7 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeGrayscaleScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme(nColors) {
+        ColorScheme scheme = new ColorScheme("Grayscale",nColors) {
             public Color defineColor(int index, int nColors) {
                 if(nColors <= 1) {
                     return Color.BLACK;

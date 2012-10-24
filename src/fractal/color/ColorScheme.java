@@ -9,14 +9,26 @@ import java.awt.Color;
  */
 public abstract class ColorScheme
 {
-    private final static int NCOLORS = 256;
-    private int nColors = NCOLORS;
-    private Color[] colors = null;
+    protected final static int NCOLORS = 256;
+    protected int nColors = NCOLORS;
+    protected Color[] colors;
+    protected String name = "ColorScheme";
 
     /**
      * ColorScheme default constructor (256 colors).
      */
     public ColorScheme() {
+    }
+
+    /**
+     * ColorScheme default constructor (256 colors).
+     * 
+     * @param name
+     * @param nColors
+     */
+    public ColorScheme(String name, int nColors) {
+        this.name = name;
+        this.nColors = nColors;
     }
 
     /**
@@ -140,6 +152,20 @@ public abstract class ColorScheme
      */
     public int getNColors() {
         return nColors;
+    }
+
+    /**
+     * @return The value of name.
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name The new value for name.
+     */
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

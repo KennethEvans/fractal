@@ -6,6 +6,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -15,6 +16,7 @@ import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.Set;
@@ -23,10 +25,12 @@ import javax.imageio.ImageIO;
 import javax.print.PrintService;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -36,7 +40,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -54,7 +60,7 @@ import net.kenevans.imagemodel.utils.ImageUtils;
 import net.kenevans.imagemodel.utils.Utils;
 import fractal.color.ColorScheme;
 import fractal.color.ColorSchemes;
-import fractal.model.State;
+import fractal.model.FractalModel;
 import fractal.model.UndoableComponentEdit;
 import fractal.model.UndoableRegionEdit;
 
@@ -72,17 +78,11 @@ public class FractalBrowser extends JFrame implements IConstants
         "tiff", "png", "bmp"};
 
     public static enum ControlPanelMode {
-        REGION, COLORS, ZOOM
+        REGION, COLORS, SIZE, ZOOM
     };
 
     private static final int N_COLORS = 1024;
-    private static final int IMAGE_HEIGHT_DEFAULT = 600;
-    private static final int IMAGE_WIDTH_DEFAULT = 800;
     // private static final int ITERS_DEFAULT = 570;
-    private static final int ITERS_DEFAULT = 570;
-    private static final double RMAX_DEFAULT = 8;
-    private Rectangle2D CRECT_DEFAULT = new Rectangle2D.Double(-2.08, -1.20,
-        3.20, 2.40);
     private static final double ZOOM_FACTOR = 1.5;
 
     private ControlPanelMode controlPanelMode = ControlPanelMode.REGION;
@@ -96,17 +96,18 @@ public class FractalBrowser extends JFrame implements IConstants
     private boolean fitIfLarger = false;
 
     private UndoManager undoManager = new UndoManager();
-    private State state = new State((Rectangle2D)CRECT_DEFAULT.clone(),
-        ITERS_DEFAULT, RMAX_DEFAULT, IMAGE_WIDTH_DEFAULT, IMAGE_HEIGHT_DEFAULT);
+    private FractalModel fm = new FractalModel();
     private static final int MAX_UNDO = 25;
     private boolean editInProgress = false;
-    private Rectangle2D regionLastValue = (Rectangle2D)CRECT_DEFAULT.clone();
-    private String itersLastValue = Integer.toString(ITERS_DEFAULT);
-    private String rMaxLastValue = Double.toString(RMAX_DEFAULT);
-    // private String imageWidthLastValue =
-    // Integer.toString(IMAGE_WIDTH_DEFAULT);
-    // private String imageHeightLastValue =
-    // Integer.toString(IMAGE_HEIGHT_DEFAULT);
+    private boolean drawEnabled = true;
+    private Rectangle2D regionLastValue = fm.getcRectDefaultClone();
+    private String itersLastValue = Integer.toString(fm.getIters());
+    private String rMaxLastValue = Double.toString(fm.getrMax());
+    private String imageWidthLastValue = Integer.toString(fm.getImageWidth());
+    private String imageHeightLastValue = Integer.toString(fm.getImageHeight());
+    private String hueLastValue = Double.toString(fm.getHue());
+    private String saturationLastValue = Double.toString(fm.getSaturation());
+    private String brightnessLastValue = Double.toString(fm.getBrightness());
 
     private ColorScheme[] colorSchemes = new ColorScheme[N_COLOR_SCHEMES];
     private ColorScheme colorScheme;
@@ -161,11 +162,16 @@ public class FractalBrowser extends JFrame implements IConstants
 
     private JTextField itersText;
     private JTextField rMaxText;
+    private JTextField imageWidthText;
+    private JTextField imageHeightText;
+    private JTextField hText;
+    private JTextField sText;
+    private JTextField bText;
     private JComboBox colorSchemeCombo;
     private JMenuItem menuEditUndo = new JMenuItem("Undo");
     private JMenuItem menuEditRedo = new JMenuItem("Redo");
+    private JButton drawEnabledButton;
 
-    private FractalBrowser frame = this;
     private double initialRotateAngle = 0.0;
     private double initialGamma = ImageModel.GAMMA_LIGHTEN;
     private String currentDir = null;
@@ -284,10 +290,10 @@ public class FractalBrowser extends JFrame implements IConstants
 
         // Content pane
         // For the drag behavior to work correctly, the tool bar must be in a
-        // container that uses the BorderLayout layout manager. The state
+        // container that uses the BorderLayout layout manager. The fm
         // that
         // the tool bar affects is generally in the center of the container. The
-        // tool bar must be the only other state in the container, and it
+        // tool bar must be the only other fm in the container, and it
         // must
         // not be in the center.
         contentPane.setLayout(new BorderLayout());
@@ -355,7 +361,7 @@ public class FractalBrowser extends JFrame implements IConstants
         toolBar.addSeparator();
 
         // Zoom button
-        button = makeToolBarButton("/resources/zoom.gif", "Zoom controls.",
+        button = makeToolBarButton("/resources/zoom.gif", "Zoom controls",
             "Zoom Controls");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
@@ -364,7 +370,7 @@ public class FractalBrowser extends JFrame implements IConstants
         });
 
         // Colors button
-        button = makeToolBarButton("/resources/colors.png", "Color controls.",
+        button = makeToolBarButton("/resources/colors.png", "Color controls",
             "Color Controls");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
@@ -372,9 +378,18 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
 
+        // Page button
+        button = makeToolBarButton("/resources/page.png", "Size controls",
+            "Size Controls");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                resetControlPanel(ControlPanelMode.SIZE);
+            }
+        });
+
         // Region button
-        button = makeToolBarButton("/resources/fractal.png",
-            "Region controls.", "Region Controls");
+        button = makeToolBarButton("/resources/fractal.png", "Region controls",
+            "Region Controls");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 resetControlPanel(ControlPanelMode.REGION);
@@ -407,6 +422,8 @@ public class FractalBrowser extends JFrame implements IConstants
             createRegionControlPanel();
         } else if(mode == ControlPanelMode.COLORS) {
             createColorsControlPanel();
+        } else if(mode == ControlPanelMode.SIZE) {
+            createSizeControlPanel();
         } else if(mode == ControlPanelMode.ZOOM) {
             createZoomControlPanel();
         }
@@ -416,7 +433,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Makes an empty control panel.
+     * Makes an the region control panel.
      */
     protected void createRegionControlPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -458,9 +475,9 @@ public class FractalBrowser extends JFrame implements IConstants
 
         itersText = new JTextField(8);
         panel.add(itersText);
-        itersText.setName("iters");
-        itersText.setText(Integer.toString(state.getIters()));
-        itersText.setToolTipText("The maximum number of iterations");
+        itersText.setName("Iters");
+        itersText.setText(Integer.toString(fm.getIters()));
+        itersText.setToolTipText(label.getToolTipText());
         itersText.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 if(itersText != null) {
@@ -469,13 +486,13 @@ public class FractalBrowser extends JFrame implements IConstants
                         return;
                     }
                     try {
+                        fm.setIters(Integer.parseInt(text));
                         saveComponentState(itersText, itersLastValue, text);
-                        state.setIters(Integer.parseInt(text));
                         draw();
                     } catch(NumberFormatException ex) {
                         Utils.excMsg("Error getting Iters", ex);
                     }
-                    itersText.setText(Integer.toString(state.getIters()));
+                    itersText.setText(Integer.toString(fm.getIters()));
                     itersLastValue = itersText.getText();
                 }
             }
@@ -487,9 +504,9 @@ public class FractalBrowser extends JFrame implements IConstants
 
         rMaxText = new JTextField(8);
         panel.add(rMaxText);
-        rMaxText.setName("rMax");
-        rMaxText.setText(String.format("%.3f", state.getrMax()));
-        rMaxText.setToolTipText("The escape radius");
+        rMaxText.setName("R Max");
+        rMaxText.setText(String.format("%.3f", fm.getrMax()));
+        rMaxText.setToolTipText(label.getToolTipText());
         rMaxText.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 if(rMaxText != null) {
@@ -498,25 +515,37 @@ public class FractalBrowser extends JFrame implements IConstants
                         return;
                     }
                     try {
+                        fm.setrMax(Integer.parseInt(text));
                         saveComponentState(rMaxText, rMaxLastValue, text);
-                        state.setrMax(Integer.parseInt(text));
                         draw();
                     } catch(NumberFormatException ex) {
                         Utils.excMsg("Error getting rMax", ex);
                     }
-                    rMaxText.setText(Double.toString(state.getrMax()));
+                    rMaxText.setText(Double.toString(fm.getrMax()));
                     rMaxLastValue = rMaxText.getText();
                 }
             }
         });
 
-        // Crop button
-        button = new JButton("Crop");
+        // Resize button
+        button = new JButton("Resize");
+        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK),
+            "resetRegion");
+        button.getActionMap().put("resetRegion", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resize();
+            }
+        });
         panel.add(button);
-        button.setToolTipText("Crop the region of interest");
+        button
+            .setToolTipText("Resize the region after dragging to set a selection");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                crop();
+                resize();
             }
         });
 
@@ -525,7 +554,118 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Adds zoomX components to the control panel.
+     * Makes an the size control panel.
+     */
+    protected void createSizeControlPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        controlPanel.add(panel, BorderLayout.LINE_START);
+
+        JLabel label = new JLabel("Image Width: ");
+        label.setToolTipText("The width in pixels of the generated image");
+        panel.add(label);
+
+        imageWidthText = new JTextField(8);
+        panel.add(imageWidthText);
+        imageWidthText.setName("Image Width");
+        imageWidthText.setText(Integer.toString(fm.getImageWidth()));
+        imageWidthText.setToolTipText(label.getToolTipText());
+        imageWidthText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(imageWidthText != null) {
+                    String text = imageWidthText.getText();
+                    if(imageWidthText.equals(imageWidthLastValue)) {
+                        return;
+                    }
+                    try {
+                        int newWidth = Integer.parseInt(text);
+                        if(newWidth <= 0) {
+                            Utils.errMsg("Invalid width");
+                            return;
+                        }
+                        fm.setImageWidth(newWidth);
+                        // Prompt to disable recalculation
+                        int res = JOptionPane.showConfirmDialog(
+                            FractalBrowser.this, "Defer recalculation?",
+                            "Query", JOptionPane.YES_NO_OPTION);
+                        if(res != JOptionPane.YES_OPTION) {
+                            draw();
+                        }
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting image width", ex);
+                    }
+                    imageWidthText.setText(Integer.toString(fm.getImageWidth()));
+                    imageWidthLastValue = imageWidthText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("Image Height: ");
+        label.setToolTipText("The width in pixels of the generated image");
+        panel.add(label);
+
+        imageHeightText = new JTextField(8);
+        panel.add(imageHeightText);
+        imageHeightText.setName("Image Height");
+        imageHeightText.setText(Integer.toString(fm.getImageHeight()));
+        imageHeightText.setToolTipText(label.getToolTipText());
+        imageHeightText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(imageHeightText != null) {
+                    String text = imageHeightText.getText();
+                    if(imageHeightText.equals(imageHeightLastValue)) {
+                        return;
+                    }
+                    try {
+                        int newHeight = Integer.parseInt(text);
+                        if(newHeight <= 0) {
+                            Utils.errMsg("Invalid height");
+                            return;
+                        }
+                        fm.setImageHeight(newHeight);
+                        saveComponentState(imageHeightText,
+                            imageHeightLastValue, text);
+                        // Prompt to disable recalculation
+                        int res = JOptionPane.showConfirmDialog(
+                            FractalBrowser.this, "Defer recalculation?",
+                            "Query", JOptionPane.YES_NO_OPTION);
+                        if(res != JOptionPane.YES_OPTION) {
+                            draw();
+                        }
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting image width", ex);
+                    }
+                    imageHeightText.setText(Integer.toString(fm
+                        .getImageHeight()));
+                    imageHeightLastValue = imageWidthText.getText();
+                }
+            }
+        });
+
+        drawEnabledButton = new JButton();
+        drawEnabledButton.setText(drawEnabled ? "Disable Recalc"
+            : "Enable Recalc");
+        ;
+        drawEnabledButton
+            .setToolTipText("Set whethere drawing will happen after new "
+                + "values are entered");
+        panel.add(drawEnabledButton);
+        drawEnabledButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                drawEnabled = !drawEnabled;
+                drawEnabledButton.setText(drawEnabled ? "Disable Recalc"
+                    : "Enable Recalc");
+                if(drawEnabled) {
+                    draw();
+                }
+            }
+        });
+
+        controlPanel.repaint();
+        contentPane.validate();
+    }
+
+    /**
+     * Creates the zoom control panel.
      */
     protected void createZoomControlPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -584,7 +724,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Adds zoomX components to the control panel.
+     * Creates the colors control panel.
      */
     protected void createColorsControlPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
@@ -593,19 +733,10 @@ public class FractalBrowser extends JFrame implements IConstants
         final JPopupMenu menu = new JPopupMenu();
         menu.add(menuImageGamma);
 
-        final JButton button = new JButton();
-        button.setText("Gamma");
-        button.setToolTipText("Adjust gamma");
-        panel.add(button);
-        button.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                menu.show(button, button.getBounds().x, button.getBounds().y
-                    + button.getBounds().height);
-            }
-        });
-
         String[] comboItems = new String[colorSchemeValues.length];
         for(int i = 0; i < comboItems.length; i++) {
+            // // This doesn't work since schemes are not created until needed
+            // comboItems[i] = colorSchemes[i].getName();
             comboItems[i] = colorSchemeValues[i][0];
         }
         colorSchemeCombo = new JComboBox(comboItems);
@@ -616,6 +747,93 @@ public class FractalBrowser extends JFrame implements IConstants
             public void actionPerformed(ActionEvent ev) {
                 setColorScheme(colorSchemeCombo.getSelectedIndex());
                 draw();
+            }
+        });
+
+        JLabel label = new JLabel("H: ");
+        label.setToolTipText("Hue, the angle in degrees on the color wheel");
+        panel.add(label);
+
+        hText = new JTextField(8);
+        panel.add(hText);
+        hText.setName("Hue");
+        hText.setText(String.format("%.3f", fm.getHue()));
+        hText.setToolTipText(label.getToolTipText());
+        hText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(hText != null) {
+                    String text = hText.getText();
+                    if(hText.equals(hueLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setHue(Float.parseFloat(text));
+                        saveComponentState(hText, hueLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting hue", ex);
+                    }
+                    hText.setText(Float.toString(fm.getHue()));
+                    hueLastValue = hText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("S: ");
+        label.setToolTipText("Saturation, 1 is no change, 0 is B&W");
+        panel.add(label);
+
+        sText = new JTextField(8);
+        panel.add(sText);
+        sText.setName("Saturation");
+        sText.setText(String.format("%.3f", fm.getSaturation()));
+        sText.setToolTipText(label.getToolTipText());
+        sText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(sText != null) {
+                    String text = sText.getText();
+                    if(sText.equals(saturationLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setSaturation(Float.parseFloat(text));
+                        saveComponentState(sText, saturationLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting saturation", ex);
+                    }
+                    sText.setText(Float.toString(fm.getSaturation()));
+                    saturationLastValue = sText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("B: ");
+        label.setToolTipText("Brightness, 1 is no change, 0 is black");
+        panel.add(label);
+
+        bText = new JTextField(8);
+        panel.add(bText);
+        bText.setName("Brightness");
+        bText.setText(String.format("%.3f", fm.getBrightness()));
+        bText.setToolTipText(label.getToolTipText());
+        bText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(bText != null) {
+                    String text = bText.getText();
+                    if(bText.equals(brightnessLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setBrightness(Float.parseFloat(text));
+                        saveComponentState(bText, brightnessLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting brightness", ex);
+                    }
+                    bText.setText(Float.toString(fm.getBrightness()));
+                    brightnessLastValue = bText.getText();
+                }
             }
         });
 
@@ -735,10 +953,11 @@ public class FractalBrowser extends JFrame implements IConstants
             InputEvent.CTRL_MASK));
         menuEditUndo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                System.out.println("*undoButton (Before): state=" + state);
-                System.out.println("   undoManager (Before)=" + undoManager);
-                System.out.println("   presentationName (Before)="
-                    + undoManager.getPresentationName());
+                // DEBUG
+                // System.out.println("*undoButton (Before): fm=" + fm);
+                // System.out.println("   undoManager (Before)=" + undoManager);
+                // System.out.println("   presentationName (Before)="
+                // + undoManager.getPresentationName());
                 editInProgress = true;
                 String presentationName = undoManager.getPresentationName();
                 try {
@@ -752,10 +971,11 @@ public class FractalBrowser extends JFrame implements IConstants
                 } finally {
                     editInProgress = false;
                 }
-                System.out.println("*undoButton (After): state=" + state);
-                System.out.println("   undoManager (After)=" + undoManager);
-                System.out.println("   presentationName (After)="
-                    + undoManager.getPresentationName());
+                // // DEBUG
+                // System.out.println("*undoButton (After): fm=" + fm);
+                // System.out.println("   undoManager (After)=" + undoManager);
+                // System.out.println("   presentationName (After)="
+                // + undoManager.getPresentationName());
             }
         });
 
@@ -764,10 +984,11 @@ public class FractalBrowser extends JFrame implements IConstants
             InputEvent.CTRL_MASK));
         menuEditRedo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                System.out.println("*redoButton (Before): state=" + state);
-                System.out.println("   undoManager (Before)=" + undoManager);
-                System.out.println("   presentationName (Before)="
-                    + undoManager.getPresentationName());
+                // // DEBUG
+                // System.out.println("*redoButton (Before): fm=" + fm);
+                // System.out.println("   undoManager (Before)=" + undoManager);
+                // System.out.println("   presentationName (Before)="
+                // + undoManager.getPresentationName());
                 String presentationName = undoManager.getPresentationName();
                 editInProgress = true;
                 try {
@@ -781,10 +1002,11 @@ public class FractalBrowser extends JFrame implements IConstants
                 } finally {
                     editInProgress = false;
                 }
-                System.out.println("*redoButton (After): state=" + state);
-                System.out.println("   undoManager (After)=" + undoManager);
-                System.out.println("   presentationName (After)="
-                    + undoManager.getPresentationName());
+                // // DEBUG
+                // System.out.println("*redoButton (After): fm=" + fm);
+                // System.out.println("   undoManager (After)=" + undoManager);
+                // System.out.println("   presentationName (After)="
+                // + undoManager.getPresentationName());
             }
         });
 
@@ -1013,20 +1235,12 @@ public class FractalBrowser extends JFrame implements IConstants
         });
         menuRotate.add(menuRotateAny);
 
-        // // Crop
-        // menuCrop.setText("Crop");
-        // menuCrop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D,
-        // InputEvent.CTRL_MASK));
-        // menuImage.add(menuCrop);
-
         // Crop
         menuCropCrop.setText("Crop");
-        menuCropCrop.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D,
-            InputEvent.CTRL_MASK));
         menuCropCrop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 if(imagePanel == null) return;
-                crop();
+                imagePanel.crop();
             }
         });
         menuImage.add(menuCropCrop);
@@ -1046,11 +1260,11 @@ public class FractalBrowser extends JFrame implements IConstants
 
         // Image Restore
         menuImageRestore.setText("Restore");
-        menuImageRestore.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R,
-            InputEvent.CTRL_MASK));
         menuImageRestore.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                resetRegion();
+                if(imageModel != null) {
+                    imageModel.restore();
+                }
             }
         });
         menuImage.add(menuImageRestore);
@@ -1062,7 +1276,12 @@ public class FractalBrowser extends JFrame implements IConstants
         menuHelpOverview.setText("Overview");
         menuHelpOverview.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
-                overview();
+                try {
+                    help();
+                } catch(Exception ex) {
+                    overview();
+                    Utils.excMsg("Could not find the HTML help file", ex);
+                }
             }
         });
         menuHelp.add(menuHelpOverview);
@@ -1078,62 +1297,45 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     private void draw() {
-        // DEBUG
-        System.out.println("draw: state=" + state);
-        Rectangle2D cRect = state.getcRect();
-        int iters = state.getIters();
-        double rMax = state.getrMax();
-        int imageWidth = state.getImageWidth();
-        int imageHeight = state.getImageHeight();
-        BufferedImage image = new BufferedImage(imageWidth, imageHeight,
-            BufferedImage.TYPE_INT_RGB);
-        if(imageModel == null) {
+        if(!drawEnabled) {
             return;
         }
-        int curIter;
-        int color;
-        double zx, zy, cX, cY, tmp;
-        double deltaX = cRect.getWidth() / (imageWidth - 1);
-        double deltaY = cRect.getHeight() / (imageHeight - 1);
-        double fraction;
-        for(int row = 0; row < imageHeight; row++) {
-            cY = cRect.getMinY() + deltaY * row;
-            for(int col = 0; col < imageWidth; col++) {
-                zx = zy = 0;
-                cX = cRect.getMinX() + deltaX * col;
-
-                curIter = iters;
-                // curIter must be greater than 0 tyo show black for bounded
-                while(zx * zx + zy * zy < rMax && curIter > 0) {
-                    tmp = zx * zx - zy * zy + cX;
-                    zy = 2.0 * zx * zy + cY;
-                    zx = tmp;
-                    curIter--;
-                }
-                fraction = (double)curIter / (iters - 1);
-                color = curIter == 0 ? 0 : ColorScheme.toColorInt(colorScheme
-                    .getStoredColor(fraction * .80));
-                image.setRGB(col, row, color);
+        Cursor oldCursor = getCursor();
+        try {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            BufferedImage image = fm.getImage();
+            imageModel.replaceImage(image);
+            if(imagePanel != null) {
+                imagePanel.repaint();
+                imagePanel.revalidate();
             }
+            // Recalculate the fitImage state
+            fitImage();
+        } catch(Throwable t) {
+            Utils.excMsg("Error drawing image", t);
+        } finally {
+            setCursor(oldCursor);
         }
-        imageModel.replaceImage(image);
-        if(imagePanel != null) {
-            imagePanel.repaint();
-            imagePanel.revalidate();
-        }
-
     }
 
-    public void crop() {
-        System.out.println("crop (Before): state=" + state);
+    public void resize() {
         if(imageModel == null) return;
         // saveComponentState();
-        Rectangle2D cRect = state.getcRect();
-        int imageWidth = state.getImageWidth();
-        int imageHeight = state.getImageHeight();
-        Rectangle2D rect = imagePanel.getClipRectangle().getBounds2D();
+        Rectangle2D cRect = fm.getcRect();
+        int imageWidth = fm.getImageWidth();
+        int imageHeight = fm.getImageHeight();
+        Rectangle rectZoom = new Rectangle(imagePanel.getClipRectangle());
+        // Scale the rectangle to the current zoom
+        double zoom = imagePanel.getZoom();
+        if(zoom != 0) {
+            rectZoom.x /= zoom;
+            rectZoom.y /= zoom;
+            rectZoom.width /= zoom;
+            rectZoom.height /= zoom;
+        }
+        Rectangle2D rect = rectZoom.getBounds2D();
         // DEBUG
-        // System.out.println("crop: " + rect);
+        // System.out.println("resize: " + rect);
         if(rect.getWidth() <= 0 || rect.getHeight() <= 0) {
             return;
         }
@@ -1148,27 +1350,22 @@ public class FractalBrowser extends JFrame implements IConstants
         cRect.setRect(x, y, width, height);
         saveRegionState();
         draw();
-        System.out.println("crop (After): state=" + state);
     }
 
     public void resetRegion() {
-        // DEBUG
-        System.out.println("resetRegion");
-        state.setcRect((Rectangle2D)CRECT_DEFAULT.clone());
+        fm.setcRect(fm.getcRectDefaultClone());
         saveRegionState();
         draw();
     }
 
     public void resizeRegion(boolean out) {
-        // DEBUG
-        System.out.println("resizeRegion");
         double scale;
         if(out) {
             scale = ZOOM_FACTOR;
         } else {
             scale = 1. / ZOOM_FACTOR;
         }
-        Rectangle2D cRect = state.getcRect();
+        Rectangle2D cRect = fm.getcRect();
         double x0 = cRect.getCenterX();
         double y0 = cRect.getCenterY();
         double width = cRect.getWidth() * scale;
@@ -1377,7 +1574,6 @@ public class FractalBrowser extends JFrame implements IConstants
         try {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             retVal = ImageUtils.saveImage(image, file);
-            frame.setCursor(Cursor.getDefaultCursor());
         } finally {
             setCursor(oldCursor);
         }
@@ -1391,8 +1587,29 @@ public class FractalBrowser extends JFrame implements IConstants
         System.exit(0);
     }
 
+    private boolean help() throws IOException {
+        JTextPane tp = new JTextPane();
+        JScrollPane sp = new JScrollPane();
+        sp.getViewport().add(tp);
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.getContentPane().add(sp);
+        frame.pack();
+        frame.setLocationRelativeTo(this);
+        frame.setSize(600, 600);
+        ImageUtils.setIconImageFromResource(frame,
+            "/resources/FractalBrowser.32x32.png");
+        // Note that help.html does not work because *.html files
+        // are filtered from building to bin. Could have changed the
+        // Java Compiler | Building options.
+        URL url = FractalBrowser.class.getResource("/resources/help.htm");
+        tp.setPage(url);
+        frame.setVisible(true);
+        return true;
+    }
+
     /**
-     * Toggles scaling the image.
+     * Scales the image according to the fitAlways and fitIfLarger;
      */
     private void fitImage() {
         menuImageFit.setSelected(fitIfLarger);
@@ -1414,8 +1631,7 @@ public class FractalBrowser extends JFrame implements IConstants
     private void imageInfo() {
         if(imageModel == null) return;
         String info = imageModel.getInfo();
-        info += "Active Rectangle:" + Utils.LS;
-        info += state.getcRect() + Utils.LS;
+        info += fm.getInfo() + LS;
         Utils.infoMsg(info);
     }
 
@@ -1431,16 +1647,18 @@ public class FractalBrowser extends JFrame implements IConstants
      * Overview message.
      */
     private void overview() {
-        String ls = Utils.LS;
+        String ls = LS;
         StringBuilder sb = new StringBuilder();
         sb.append("Fractal Browser allows you to manipulate a fractal image."
             + ls);
         sb.append("You can save the image as a new file and do Cut, Copy," + ls);
-        sb.append("and Paste.  Some image manipulation is available from the"
+        sb.append("and Paste.  Some image manipulation is available from" + ls);
+        sb.append("the Image menu.  These only affect the current image" + ls);
+        sb.append("and are lost when the image is recalculated.  You can" + ls);
+        sb.append("use them before saving." + ls + ls);
+        sb.append("The image formats you can use to save will depend on" + ls);
+        sb.append("whether Java Advanced Imaging (JAI and JAI ImageIO) are"
             + ls);
-        sb.append("Image menu." + ls);
-        sb.append("The image formats you can use will depend on whether" + ls);
-        sb.append("Java Advanced Imaging (JAI and JAI ImageIO) is" + ls);
         sb.append("installed.  You can see the available formats under the "
             + ls);
         sb.append("Info menu." + ls);
@@ -1454,8 +1672,7 @@ public class FractalBrowser extends JFrame implements IConstants
         sb.append("  Print: Ctrl-P" + ls);
         sb.append("  Always Fit: Ctrl-F" + ls);
         sb.append("  Save: Ctrl-S" + ls);
-        sb.append("  Restore: Ctrl-R" + ls);
-        sb.append("  Crop: Ctrl-D" + ls);
+        sb.append("  Resize: Ctrl-R" + ls);
         sb.append("" + ls);
         sb.append("Mouse:" + ls);
         sb.append("  Drag: Set rectangle" + ls);
@@ -1503,11 +1720,11 @@ public class FractalBrowser extends JFrame implements IConstants
         if(colorSchemeCombo != null) {
             colorSchemeCombo.setSelectedIndex(index);
         }
-        // draw();
+        fm.setColorScheme(colorScheme);
     }
 
     /**
-     * Saves the current state of the given component for undo/redo.
+     * Saves the current fm of the given component for undo/redo.
      */
     /**
      * @param component
@@ -1516,7 +1733,7 @@ public class FractalBrowser extends JFrame implements IConstants
      */
     private void saveComponentState(Component component, String oldValue,
         String newValue) {
-        // Don't save the state while undo'ing or redo'ing
+        // Don't save the fm while undo'ing or redo'ing
         if(editInProgress) {
             return;
         }
@@ -1526,22 +1743,23 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Saves the current state of the region for undo/redo.
+     * Saves the current fm of the region for undo/redo.
      */
     private void saveRegionState() {
-        // DEBUG
-        System.out.println("saveRegionState");
-        System.out.println("   undoManager (Before)=" + undoManager);
-        // Don't save the state while undo'ing or redo'ing
+        // // DEBUG
+        // System.out.println("saveRegionState");
+        // System.out.println("   undoManager (Before)=" + undoManager);
+        // // Don't save the fm while undo'ing or redo'ing
         if(editInProgress) {
             return;
         }
-        Rectangle2D newRect = (Rectangle2D)state.getcRect().clone();
+        Rectangle2D newRect = (Rectangle2D)fm.getcRect().clone();
         undoManager.undoableEditHappened(new UndoableEditEvent(this,
-            new UndoableRegionEdit(state, regionLastValue, newRect)));
+            new UndoableRegionEdit(fm, regionLastValue, newRect)));
         regionLastValue = newRect;
         resetUndoRedoButtons();
-        System.out.println("   undoManager (After)=" + undoManager);
+        // // DEBUG
+        // System.out.println("   undoManager (After)=" + undoManager);
     }
 
     private void resetUndoRedoButtons() {
@@ -1593,20 +1811,6 @@ public class FractalBrowser extends JFrame implements IConstants
      */
     public static String getVersionString() {
         return VERSION_STRING;
-    }
-
-    /**
-     * @return The value of itersDefault.
-     */
-    public static int getItersDefault() {
-        return ITERS_DEFAULT;
-    }
-
-    /**
-     * @return The value of rmaxDefault.
-     */
-    public static double getRmaxDefault() {
-        return RMAX_DEFAULT;
     }
 
     /**

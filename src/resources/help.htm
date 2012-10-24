@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Fractal Browser Help</title>
+</head>
+<body>
+<h1 align="center">Fractal Browser</h1>
+<p>Fractal Browser allows you to manipulate a fractal image. The most useful
+  operation is Resize, which allows you to &quot;zoom&quot; in on different parts
+  of the image using the mouse to drag a selection rectangle. However, the image
+  is recalculated. You do not really zoom. You can try the other options to see
+  what happens. There are tool tips to provide help for most of the  controls
+  until a more detailed help manual is created. </p>
+<p>Fractal Browser is also an image browser. You can open images, and  you can also drag images into the window. You can do things like Save As, Copy, Paste, Print, and Toggle fitting the image to the current window. There are also image manipulation commands in the Image menu. These  work on any image. The first buttons on the toolbar also operate on any image. These include  Save As, Copy, Paste, and Toggle fitting the image  to the current window.</p>
+<p>When doing fractals, the general image controls may be appropriate to use before saving, but their operation will be lost when a new image is calculated. However, any image zooming and fitting to the current window should be maintained. </p>
+<p> The fractal controls are different because they cause a new image to be calculated. These include the Zoom Controls, Color Controls, Size Controls, and Region Controls buttons. These buttons change the Control Panel at the end of the toolbar to controls specific to that category. Using the controls in the Control Panel cause the image to be recalculated. The Undo and Redo commands on the edit menu also cause recalculation. Any old image, including ones you have opened,  and image modifications will be lost. </p>
+<p>Large image sizes can take a long time to calculate. There is an option in the Size Controls to disable recalculating if you wish to do several operations before making a single recalculation. When changing the image width or height it will ask you if you want to defer calculation, since often both of these are often changed at once. </p>
+<p>The image formats you can use to save will depend on 
+  whether Java Advanced Imaging JAI and JAI ImageIO) is 
+  installed.  You can see the available formats under the 
+  Info menu. The extension you use when entering the file
+  name to be saved determines the type.  Saving as .jpg may give a low compression. It uses the Java default, which is not always sensible. The program may be fixed in the future so you can specify the compression. Until then it is suggested you use .png. It is also wise to check the save was successful. Images saved with an invalid extension may be empty or JPEG images may not have the colors you want. </p>
+<h3>Accelerator keys:</h3>
+<ul>
+  <li>Copy: Ctrl-C  (Image) </li>
+  <li>Paste: Ctrl-V   (Image) </li>
+  <li>Print: Ctrl-P   (Image) </li>
+  <li>Paste and Print: Ctrl-B   (Image) </li>
+  <li>Always Fit: Ctrl-F   (Image) </li>
+  <li>Save: Ctrl-S  (Image) <br />
+  </li>
+  <li>Resize: Ctrl-R (Fractal) </li>
+  <li>Undo: Ctrl-Z  (Fractal) </li>
+  <li>Redo: Ctrl-Y  (Fractal) </li>
+</ul>
+<h3>Mouse:</h3>
+<ul>
+  <li>Drag: Set rectangle (Image or Fractal) </li>
+  <li>Double click: Remove rectangle  (Image or Fractal) </li>
+  <li>Shift-click: Zoom In  (Image) </li>
+  <li>Ctrl-click: Zoom Out  (Image) </li>
+  <li>Alt-click: Zoom Reset (Image) </li>
+</ul>
+<h3>Running</h3>
+<p>You must have Java installed to run Fractal Browser. Likely it is already installed. If not, it is available free from Oracle and is not hard to install. Search for &quot;java download&quot;. </p>
+<p><em><strong>Windows</strong></em></p>
+<p>On Windows you can run Fractal Browser by double clicking FractalBrowser.jar. This assumes Java is associated with the .jar extension, which is usually the case. </p>
+<p>You can make a shortcut to FractalBrowser.jar by right clicking and picking the appropriate menu option. In the properties for the shortcut (right-click the shortcut to get to them) you can change the target to:</p>
+<p>javaw -Xmx1024M  -XX:MaxPermSize=128m -jar &quot;&lt;install-dir&gt;\FractalBrowser.jar&quot; </p>
+<p>&lt;install-dir&gt; is the directory where you put the Fractal Browser files. Windows will add the full path to javaw by itself. In this case the arguments to javaw have also been changed to provide more memory. You can change the arguments or eliminate them according to your needs. Double clicking the .jar file is equivalent to having no arguments.</p>
+<p>You can rename the shortcut to be more aesthetic. To be even more aesthetic you can change the icon via the Change Icon button in Properties. Browse to the &lt;install-dir&gt; and select Fractal Browser.ico. You can move or copy the short cut elsewhere.</p>
+<p>You can use the shortcut supplied with the distribution instead of making your own, but you will probably have to change the paths for the target and the icon. </p>
+<p><em><strong>Others</strong></em></p>
+<p>You can make a script to run the following command. </p>
+<p>java -Xmx1024M  -XX:MaxPermSize=128m -jar &lt;install-dir&gt;/FractalBrowser.jar</p>
+<p>You may have to give a full path to java and perhaps make other modifications depending on your operating system. In this case the arguments to java have also been changed to provide more memory. You can change the arguments or eliminate them according to your needs. You can  use javaw in place of java if it is available. Javaw does not have a console. </p>
+<p>As of the time this help was written, Fractal Browser had not been tested on systems besides Windows. </p>
+<p>&nbsp;</p>
+</body>
+</html>
