@@ -187,12 +187,11 @@ public class FractalModel implements Cloneable
         // System.out.println("draw: fm=" + this);
         Rectangle2D cRect = this.getcRect();
         int iters = this.getIters();
-        double rMax = this.getrMax();
         int imageWidth = this.getImageWidth();
         int imageHeight = this.getImageHeight();
         BufferedImage image = new BufferedImage(imageWidth, imageHeight,
             BufferedImage.TYPE_INT_RGB);
-        int curIter;
+        int curIter = iters;
         int rgbColor, hsbColor;
         double cx, cy;
         double deltaX = cRect.getWidth() / (imageWidth - 1);
@@ -202,7 +201,7 @@ public class FractalModel implements Cloneable
             cy = cRect.getMinY() + deltaY * row;
             for(int col = 0; col < imageWidth; col++) {
                 cx = cRect.getMinX() + deltaX * col;
-                curIter = system.getIters(cx, cy, rMax, iters);
+                curIter = getIters(cx, cy);
                 fraction = (double)curIter / (iters - 1);
                 rgbColor = curIter == 0 ? 0 : ColorScheme
                     .toColorInt(colorScheme.getStoredColor(fraction * .80));
@@ -211,6 +210,28 @@ public class FractalModel implements Cloneable
             }
         }
         return image;
+    }
+
+    /**
+     * Gets the number of iterations for the given values of cx and cy
+     * corresponding to a single point in the image.
+     * 
+     * @param cx
+     * @param cy
+     * @return
+     */
+    public int getIters(double cx, double cy) {
+        int curIter = iters;
+        double zx, zy;
+        double[] next;
+        zx = zy = 0;
+        while(zx * zx + zy * zy < rMax && curIter > 0) {
+            next = system.nextZ(zx, zy, cx, cy);
+            zx = next[0];
+            zy = next[1];
+            curIter--;
+        }
+        return curIter;
     }
 
     /**

@@ -295,8 +295,7 @@ public class FractalBrowser extends JFrame implements IConstants
                     double cy = point.getY();
                     int itersMax = fm.getIters();
                     int iters = itersMax
-                        - fm.getSystem().getIters(cx, cy, fm.getrMax(),
-                            fm.getIters());
+                        - fm.getIters(cx, cy);
                     String msg = String.format("Cx=%g Cy=%g iters=%d/%d", cx,
                         cy, iters, itersMax);
 
