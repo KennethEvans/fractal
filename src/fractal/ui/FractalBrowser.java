@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
@@ -39,7 +41,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -47,6 +48,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.MouseInputAdapter;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
@@ -61,6 +63,8 @@ import net.kenevans.imagemodel.utils.Utils;
 import fractal.color.ColorScheme;
 import fractal.color.ColorSchemes;
 import fractal.model.FractalModel;
+import fractal.model.FractalSystem;
+import fractal.model.FractalSystems;
 import fractal.model.UndoableComponentEdit;
 import fractal.model.UndoableRegionEdit;
 
@@ -78,7 +82,7 @@ public class FractalBrowser extends JFrame implements IConstants
         "tiff", "png", "bmp"};
 
     public static enum ControlPanelMode {
-        REGION, COLORS, SIZE, ZOOM
+        REGION, COLORS, SIZE, ZOOM, SYSTEM,
     };
 
     private static final int N_COLORS = 1024;
@@ -112,6 +116,10 @@ public class FractalBrowser extends JFrame implements IConstants
     private ColorScheme[] colorSchemes = new ColorScheme[N_COLOR_SCHEMES];
     private ColorScheme colorScheme;
     private int colorSchemeIndex = 1;
+
+    private FractalSystem[] systems = new FractalSystem[N_SYSTEMS];
+    private FractalSystem system;
+    private int systemIndex = 0;
 
     private Container contentPane = this.getContentPane();
     private JToolBar toolBar = new JToolBar("FractalBrowser Tool Bar");
@@ -168,6 +176,7 @@ public class FractalBrowser extends JFrame implements IConstants
     private JTextField sText;
     private JTextField bText;
     private JComboBox colorSchemeCombo;
+    private JComboBox systemCombo;
     private JMenuItem menuEditUndo = new JMenuItem("Undo");
     private JMenuItem menuEditRedo = new JMenuItem("Redo");
     private JButton drawEnabledButton;
@@ -176,6 +185,9 @@ public class FractalBrowser extends JFrame implements IConstants
     private double initialGamma = ImageModel.GAMMA_LIGHTEN;
     private String currentDir = null;
     private ImageModel imageModel = new ImageModel();
+
+    private MouseInputAdapter mouseAdapter;
+    JFrame cPopupFrame = null;
 
     public FractalBrowser() {
         this(true);
@@ -265,6 +277,50 @@ public class FractalBrowser extends JFrame implements IConstants
 
         // Reset the undo/redo buttons
         resetUndoRedoButtons();
+
+        // Set up a mouse listener on the imagePanel to catch right click
+        mouseAdapter = new MouseInputAdapter() {
+            @Override
+            public void mousePressed(MouseEvent ev) {
+                if(ev.getButton() == MouseEvent.BUTTON3) {
+                    int x = ev.getX();
+                    int y = ev.getY();
+                    double zoom = imagePanel.getZoom();
+                    if(zoom != 0) {
+                        x /= zoom;
+                        y /= zoom;
+                    }
+                    Point2D point = fm.getCPoint(x, y);
+                    double cx = point.getX();
+                    double cy = point.getY();
+                    int itersMax = fm.getIters();
+                    int iters = itersMax
+                        - fm.getSystem().getIters(cx, cy, fm.getrMax(),
+                            fm.getIters());
+                    String msg = String.format("Cx=%g Cy=%g iters=%d/%d", cx,
+                        cy, iters, itersMax);
+
+                    JTextPane tp = new JTextPane();
+                    tp.setText(msg);
+                    cPopupFrame = new JFrame();
+                    cPopupFrame.setUndecorated(true);
+                    cPopupFrame.getContentPane().add(tp);
+                    cPopupFrame.pack();
+                    cPopupFrame.setLocation(ev.getXOnScreen() + 10,
+                        ev.getYOnScreen() + 10);
+                    cPopupFrame.setVisible(true);
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent ev) {
+                if(cPopupFrame != null) {
+                    cPopupFrame.setVisible(false);
+                    cPopupFrame = null;
+                }
+            }
+        };
+        imagePanel.getImagePanel().addMouseListener(mouseAdapter);
 
         // Draw the initial image
         draw();
@@ -387,6 +443,15 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
 
+        // System button
+        button = makeToolBarButton("/resources/system.png", "System controls",
+            "SystemControls");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                resetControlPanel(ControlPanelMode.SYSTEM);
+            }
+        });
+
         // Region button
         button = makeToolBarButton("/resources/fractal.png", "Region controls",
             "Region Controls");
@@ -426,6 +491,8 @@ public class FractalBrowser extends JFrame implements IConstants
             createSizeControlPanel();
         } else if(mode == ControlPanelMode.ZOOM) {
             createZoomControlPanel();
+        } else if(mode == ControlPanelMode.SYSTEM) {
+            createSystemControlPanel();
         }
 
         // Set the mode
@@ -665,6 +732,32 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
+     * Creates the system control panel.
+     */
+    protected void createSystemControlPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        controlPanel.add(panel, BorderLayout.LINE_START);
+
+        String[] comboItems = new String[N_SYSTEMS];
+        for(int i = 0; i < comboItems.length; i++) {
+            comboItems[i] = systemValues[i][0];
+        }
+        systemCombo = new JComboBox(comboItems);
+        systemCombo.setToolTipText("Systems");
+        systemCombo.setSelectedIndex(systemIndex);
+        panel.add(systemCombo);
+        systemCombo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                setSystem(systemCombo.getSelectedIndex());
+                draw();
+            }
+        });
+
+        controlPanel.repaint();
+        contentPane.validate();
+    }
+
+    /**
      * Creates the zoom control panel.
      */
     protected void createZoomControlPanel() {
@@ -730,10 +823,10 @@ public class FractalBrowser extends JFrame implements IConstants
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         controlPanel.add(panel, BorderLayout.LINE_START);
 
-        final JPopupMenu menu = new JPopupMenu();
-        menu.add(menuImageGamma);
+        // final JPopupMenu menu = new JPopupMenu();
+        // menu.add(menuImageGamma);
 
-        String[] comboItems = new String[colorSchemeValues.length];
+        String[] comboItems = new String[N_COLOR_SCHEMES];
         for(int i = 0; i < comboItems.length; i++) {
             // // This doesn't work since schemes are not created until needed
             // comboItems[i] = colorSchemes[i].getName();
@@ -953,7 +1046,7 @@ public class FractalBrowser extends JFrame implements IConstants
             InputEvent.CTRL_MASK));
         menuEditUndo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                // DEBUG
+                // // DEBUG
                 // System.out.println("*undoButton (Before): fm=" + fm);
                 // System.out.println("   undoManager (Before)=" + undoManager);
                 // System.out.println("   presentationName (Before)="
@@ -1334,7 +1427,7 @@ public class FractalBrowser extends JFrame implements IConstants
             rectZoom.height /= zoom;
         }
         Rectangle2D rect = rectZoom.getBounds2D();
-        // DEBUG
+        // // DEBUG
         // System.out.println("resize: " + rect);
         if(rect.getWidth() <= 0 || rect.getHeight() <= 0) {
             return;
@@ -1721,6 +1814,35 @@ public class FractalBrowser extends JFrame implements IConstants
             colorSchemeCombo.setSelectedIndex(index);
         }
         fm.setColorScheme(colorScheme);
+    }
+
+    /**
+     * Creates a system in the systemValues array if it has not been created
+     * yet, sets that system, and redisplays the image. New systems must be
+     * added here and in IConstants.
+     * 
+     * @param index The index of the system in the systemValues array.
+     */
+    public void setSystem(int index) {
+        if(index < 0 || index >= systems.length) {
+            return;
+        }
+        if(systems[index] == null) {
+            switch(index) {
+            case IFS_MANDELBRODT:
+                systems[index] = FractalSystems.makeMandelbrodt();
+                break;
+            case IFS_DRAGON:
+                systems[index] = FractalSystems.makeDragon();
+                break;
+            }
+        }
+        system = systems[index];
+        systemIndex = index;
+        if(systemCombo != null) {
+            systemCombo.setSelectedIndex(index);
+        }
+        fm.setSystem(system);
     }
 
     /**

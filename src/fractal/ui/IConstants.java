@@ -25,6 +25,16 @@ public interface IConstants
         {"Grayscale", Integer.toString(SCHEME_GRAYSCALE)},};
     public static final int N_COLOR_SCHEMES = colorSchemeValues.length;
 
+    // Used for system selection
+    // Change FractalBrowser.setSystem and FractalSystems when changes are
+    // made
+    public static final int IFS_MANDELBRODT = 0;
+    public static final int IFS_DRAGON = 1;
+    public static final String[][] systemValues = {
+        {"Mandelbrodt", Integer.toString(IFS_MANDELBRODT)},
+        {"Dragon", Integer.toString(IFS_DRAGON)},};
+    public static final int N_SYSTEMS = systemValues.length;
+
     // Used for undo/redo
     public static final String REGION_PRESENTATION_NAME = "Region Change";
 }

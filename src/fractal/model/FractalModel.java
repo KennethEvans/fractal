@@ -1,6 +1,7 @@
 package fractal.model;
 
 import java.awt.Color;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -34,6 +35,7 @@ public class FractalModel implements Cloneable
     private static final int N_COLORS_DEFAULT = 1024;
 
     ColorScheme colorScheme = ColorSchemes.makeLinearScheme(N_COLORS_DEFAULT);
+    FractalSystem system = FractalSystems.makeMandelbrodt();
     private Rectangle2D cRect = getcRectDefaultClone();
     private int iters = ITERS_DEFAULT;
     private double rMax = RMAX_DEFAULT;
@@ -192,24 +194,15 @@ public class FractalModel implements Cloneable
             BufferedImage.TYPE_INT_RGB);
         int curIter;
         int rgbColor, hsbColor;
-        double zx, zy, cX, cY, tmp;
+        double cx, cy;
         double deltaX = cRect.getWidth() / (imageWidth - 1);
         double deltaY = cRect.getHeight() / (imageHeight - 1);
         double fraction;
         for(int row = 0; row < imageHeight; row++) {
-            cY = cRect.getMinY() + deltaY * row;
+            cy = cRect.getMinY() + deltaY * row;
             for(int col = 0; col < imageWidth; col++) {
-                zx = zy = 0;
-                cX = cRect.getMinX() + deltaX * col;
-
-                curIter = iters;
-                // curIter must be greater than 0 to show black for bounded
-                while(zx * zx + zy * zy < rMax && curIter > 0) {
-                    tmp = zx * zx - zy * zy + cX;
-                    zy = 2.0 * zx * zy + cY;
-                    zx = tmp;
-                    curIter--;
-                }
+                cx = cRect.getMinX() + deltaX * col;
+                curIter = system.getIters(cx, cy, rMax, iters);
                 fraction = (double)curIter / (iters - 1);
                 rgbColor = curIter == 0 ? 0 : ColorScheme
                     .toColorInt(colorScheme.getStoredColor(fraction * .80));
@@ -218,6 +211,21 @@ public class FractalModel implements Cloneable
             }
         }
         return image;
+    }
+
+    /**
+     * Gets the value of c at the given x and y values;
+     * 
+     * @param x
+     * @param y
+     * @return
+     */
+    public Point2D getCPoint(int x, int y) {
+        double deltaX = cRect.getWidth() / (imageWidth - 1);
+        double deltaY = cRect.getHeight() / (imageHeight - 1);
+        double cx = cRect.getMinX() + deltaX * x;
+        double cy = cRect.getMinY() + deltaY * y;
+        return new Point2D.Double(cx, cy);
     }
 
     /**
@@ -264,6 +272,20 @@ public class FractalModel implements Cloneable
      */
     public void setColorScheme(ColorScheme colorScheme) {
         this.colorScheme = colorScheme;
+    }
+
+    /**
+     * @return The value of system.
+     */
+    public FractalSystem getSystem() {
+        return system;
+    }
+
+    /**
+     * @param system The new value for system.
+     */
+    public void setSystem(FractalSystem system) {
+        this.system = system;
     }
 
     /**

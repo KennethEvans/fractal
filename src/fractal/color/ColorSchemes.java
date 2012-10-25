@@ -3,7 +3,7 @@ package fractal.color;
 import java.awt.Color;
 
 /**
- * Creates color schemes
+ * Creates color schemes,
  * 
  * @author Kenneth Evans, Jr.
  */

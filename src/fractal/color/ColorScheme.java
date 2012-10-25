@@ -12,7 +12,7 @@ public abstract class ColorScheme
     protected final static int NCOLORS = 256;
     protected int nColors = NCOLORS;
     protected Color[] colors;
-    protected String name = "ColorScheme";
+    protected String name = "Color Scheme";
 
     /**
      * ColorScheme default constructor (256 colors).
