@@ -1812,8 +1812,11 @@ public class FractalBrowser extends JFrame implements IConstants
         }
         if(colorSchemes[index] == null) {
             switch(index) {
-            case SCHEME_RAINBOW:
-                colorSchemes[index] = ColorSchemes.makeRainbowScheme(N_COLORS);
+            case SCHEME_RAINBOW1:
+                colorSchemes[index] = ColorSchemes.makeRainbow1Scheme(N_COLORS);
+                break;
+            case SCHEME_RAINBOW2:
+                colorSchemes[index] = ColorSchemes.makeRainbow2Scheme(256);
                 break;
             case SCHEME_LINEAR:
                 colorSchemes[index] = ColorSchemes.makeLinearScheme(N_COLORS);
@@ -1823,14 +1826,38 @@ public class FractalBrowser extends JFrame implements IConstants
                     .makeReverseLinearScheme(N_COLORS);
                 break;
             case SCHEME_BW:
-                colorSchemes[index] = ColorSchemes.makeBWScheme(N_COLORS);
+                colorSchemes[index] = ColorSchemes.makeBWScheme(2);
+                break;
+            case SCHEME_REDS:
+                colorSchemes[index] = ColorSchemes.makeRedsScheme(256);
+                break;
+            case SCHEME_GREENS:
+                colorSchemes[index] = ColorSchemes.makeGreensScheme(256);
+                break;
+            case SCHEME_BLUES:
+                colorSchemes[index] = ColorSchemes.makeBluesScheme(256);
+                break;
+            case SCHEME_SPRING:
+                colorSchemes[index] = ColorSchemes.makeSpringScheme(256);
+                break;
+            case SCHEME_SUMMER:
+                colorSchemes[index] = ColorSchemes.makeSummerScheme(256);
+                break;
+            case SCHEME_AUTUMN:
+                colorSchemes[index] = ColorSchemes.makeAutumnScheme(256);
+                break;
+            case SCHEME_WINTER:
+                colorSchemes[index] = ColorSchemes.makeWinterScheme(256);
+                break;
+            case SCHEME_PASTEL:
+                colorSchemes[index] = ColorSchemes.makePastelScheme(256);
                 break;
             case SCHEME_GRAYSCALE:
                 colorSchemes[index] = ColorSchemes
                     .makeGrayscaleScheme(N_COLORS);
                 break;
             case SCHEME_REPEAT8:
-                colorSchemes[index] = ColorSchemes.makeRepeat8Scheme(N_COLORS);
+                colorSchemes[index] = ColorSchemes.makeRepeat8Scheme(8);
                 break;
             }
         }

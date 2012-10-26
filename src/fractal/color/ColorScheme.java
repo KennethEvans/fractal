@@ -11,8 +11,18 @@ public abstract class ColorScheme
 {
     protected final static int NCOLORS = 256;
     protected int nColors = NCOLORS;
+    /** Color array intended for use with preferIndex = false. */
     protected Color[] colors;
+    /** Color array intended for use with preferIndex = true. */
+    protected Color[] indexColors;
     protected String name = "Color Scheme";
+    /**
+     * Flag indicating to use defineColor() to get a color rather than causing
+     * an array to be allocated as happens with methods using a fraction.
+     * 
+     * @see #defineColor(int, int)
+     */
+    protected boolean preferIndex = false;
 
     /**
      * ColorScheme default constructor (256 colors).
@@ -21,14 +31,27 @@ public abstract class ColorScheme
     }
 
     /**
-     * ColorScheme default constructor (256 colors).
+     * ColorScheme constructor specifying the name.
      * 
      * @param name
-     * @param nColors
+     * @param nColors The number of colors in the scheme.
      */
     public ColorScheme(String name, int nColors) {
+        this(name, nColors, false);
+    }
+
+    /**
+     * ColorScheme constructor specifying the name and preferIndex.
+     * 
+     * @param name
+     * @param nColors The number of colors in the scheme.
+     * @param preferIndex
+     * @see #preferIndex
+     */
+    public ColorScheme(String name, int nColors, boolean preferIndex) {
         this.name = name;
         this.nColors = nColors;
+        this.preferIndex = preferIndex;
     }
 
     /**
@@ -61,6 +84,18 @@ public abstract class ColorScheme
      * @return The Color corresponding to the index.
      */
     abstract public Color defineColor(int index, int nColors);
+
+    /**
+     * Gets a color corresponding to the current number of colors. Is expected
+     * to be used when preferIndex is true rather than methods involving a
+     * fraction.
+     * 
+     * @param index Index of the color [0, nColors - 1].
+     * @return The Color corresponding to the index.
+     */
+    public Color defineColor(int index) {
+        return defineColor(index, nColors);
+    }
 
     /**
      * Calculates the integer value of the Color.
@@ -165,6 +200,13 @@ public abstract class ColorScheme
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * @return The value of preferIndex.
+     */
+    public boolean getPreferIndex() {
+        return preferIndex;
     }
 
 }

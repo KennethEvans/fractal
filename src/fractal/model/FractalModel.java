@@ -80,8 +80,6 @@ public class FractalModel implements Cloneable
      * @return
      */
     public BufferedImage getImage() {
-//        // DEBUG
-//        System.out.println("getImage: fm=" + this);
         Rectangle2D cRect = this.getcRect();
         int iters = this.getIters();
         int imageWidth = this.getImageWidth();
@@ -94,24 +92,30 @@ public class FractalModel implements Cloneable
         double deltaX = cRect.getWidth() / (imageWidth - 1);
         double deltaY = cRect.getHeight() / (imageHeight - 1);
         double fraction;
+        boolean doHSB = hue != H_DEFAULT || saturation != S_DEFAULT
+            || brightness != B_DEFAULT;
+        boolean preferIndex = colorScheme.getPreferIndex();
         // Loop over points in the image
         for(int row = 0; row < imageHeight; row++) {
             cy = cRect.getMinY() + deltaY * row;
             for(int col = 0; col < imageWidth; col++) {
                 cx = cRect.getMinX() + deltaX * col;
                 curIter = getIters(cx, cy);
-                fraction = (double)curIter / (iters - 1);
-                rgbColor = curIter == 0 ? 0 : ColorScheme
-                    .toColorInt(colorScheme.getStoredColor(fraction));
-                hsbColor = applyHSB(rgbColor);
+                if(preferIndex) {
+                    rgbColor = curIter == 0 ? 0 : ColorScheme
+                        .toColorInt(colorScheme.defineColor(curIter));
+                } else {
+                    fraction = (double)curIter / (iters - 1);
+                    rgbColor = curIter == 0 ? 0 : ColorScheme
+                        .toColorInt(colorScheme.getStoredColor(fraction));
+                }
+                if(!doHSB) {
+                    hsbColor = rgbColor;
+                } else {
+                    hsbColor = applyHSB(rgbColor);
+                    image.setRGB(col, row, hsbColor);
+                }
                 image.setRGB(col, row, hsbColor);
-                // // DEBUG
-                // if(row == 0 && col == 0) {
-                // System.out.println("curIter=" + curIter + " fraction="
-                // + fraction + " rgbColor="
-                // + String.format("%08x", rgbColor) + " hsbColor="
-                // + String.format("%08x", hsbColor));
-                // }
             }
         }
         return image;
