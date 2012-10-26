@@ -14,22 +14,23 @@ public interface IConstants
     // made
     public static final int SCHEME_RAINBOW1 = 0;
     public static final int SCHEME_RAINBOW2 = 1;
-    public static final int SCHEME_LINEAR = 2;
-    public static final int SCHEME_REVERSE_LINEAR = 3;
-    public static final int SCHEME_REDS = 4;
-    public static final int SCHEME_GREENS = 5;
-    public static final int SCHEME_BLUES = 6;
-    public static final int SCHEME_SPRING = 7;
-    public static final int SCHEME_SUMMER = 8;
-    public static final int SCHEME_AUTUMN = 9;
-    public static final int SCHEME_WINTER = 10;
-    public static final int SCHEME_PASTEL = 11;
-    public static final int SCHEME_BW = 12;
-    public static final int SCHEME_GRAYSCALE = 13;
-    public static final int SCHEME_REPEAT8 = 14;
+    public static final int SCHEME_REPEAT8 = 2;
+    public static final int SCHEME_LINEAR = 3;
+    public static final int SCHEME_REVERSE_LINEAR = 4;
+    public static final int SCHEME_REDS = 5;
+    public static final int SCHEME_GREENS = 6;
+    public static final int SCHEME_BLUES = 7;
+    public static final int SCHEME_SPRING = 8;
+    public static final int SCHEME_SUMMER = 9;
+    public static final int SCHEME_AUTUMN = 10;
+    public static final int SCHEME_WINTER = 11;
+    public static final int SCHEME_PASTEL = 12;
+    public static final int SCHEME_BW = 13;
+    public static final int SCHEME_GRAYSCALE = 14;
     public static final String[][] colorSchemeValues = {
         {"Rainbow 1", Integer.toString(SCHEME_RAINBOW1)},
         {"Rainbow 2", Integer.toString(SCHEME_RAINBOW2)},
+        {"Repeat 8", Integer.toString(SCHEME_REPEAT8)},
         {"Linear", Integer.toString(SCHEME_LINEAR)},
         {"Reverse Linear", Integer.toString(SCHEME_REVERSE_LINEAR)},
         {"Beds", Integer.toString(SCHEME_REDS)},
@@ -42,7 +43,7 @@ public interface IConstants
         {"Pastel", Integer.toString(SCHEME_PASTEL)},
         {"Black & White", Integer.toString(SCHEME_BW)},
         {"Grayscale", Integer.toString(SCHEME_GRAYSCALE)},
-        {"Repeat 8", Integer.toString(SCHEME_REPEAT8)},};
+        };
     public static final int N_COLOR_SCHEMES = colorSchemeValues.length;
 
     // Used for system selection

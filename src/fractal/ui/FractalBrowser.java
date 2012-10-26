@@ -116,7 +116,7 @@ public class FractalBrowser extends JFrame implements IConstants
 
     private ColorScheme[] colorSchemes = new ColorScheme[N_COLOR_SCHEMES];
     private ColorScheme colorScheme;
-    private int colorSchemeIndex = 1;
+    private int colorSchemeIndex = 3;
 
     private FractalSystem[] systems = new FractalSystem[N_SYSTEMS];
     private FractalSystem system;
