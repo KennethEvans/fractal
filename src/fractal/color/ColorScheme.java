@@ -47,7 +47,6 @@ public abstract class ColorScheme
         if(colors != null) return colors;
 
         colors = new Color[nColors];
-        // Make a rainbow palette
         for(int i = 0; i < nColors; i++) {
             colors[i] = defineColor(i, nColors);
         }

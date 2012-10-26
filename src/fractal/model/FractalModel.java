@@ -23,7 +23,7 @@ import fractal.color.ColorSchemes;
 public class FractalModel implements Cloneable
 {
     private static final int ITERS_DEFAULT = 570;
-    private static final double RMAX_DEFAULT = 8;
+    private static final double RMAX_DEFAULT = 1000;
     private Rectangle2D CRECT_DEFAULT = new Rectangle2D.Double(-2.08, -1.20,
         3.20, 2.40);
     private static final int IMAGE_WIDTH_DEFAULT = 800;
@@ -35,7 +35,7 @@ public class FractalModel implements Cloneable
     private static final int N_COLORS_DEFAULT = 1024;
 
     ColorScheme colorScheme = ColorSchemes.makeLinearScheme(N_COLORS_DEFAULT);
-    FractalSystem system = FractalSystems.makeMandelbrodt();
+    FractalSystem system = FractalSystems.makeMandelbrot();
     private Rectangle2D cRect = getcRectDefaultClone();
     private int iters = ITERS_DEFAULT;
     private double rMax = RMAX_DEFAULT;
@@ -72,6 +72,70 @@ public class FractalModel implements Cloneable
         float saturation, float brightness) {
         resetState(colorScheme, cRect, iters, rMax, imageWidth, imageHeight,
             hue, saturation, brightness);
+    }
+
+    /**
+     * Calculates a new BufferedImage using the current settings.
+     * 
+     * @return
+     */
+    public BufferedImage getImage() {
+//        // DEBUG
+//        System.out.println("getImage: fm=" + this);
+        Rectangle2D cRect = this.getcRect();
+        int iters = this.getIters();
+        int imageWidth = this.getImageWidth();
+        int imageHeight = this.getImageHeight();
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight,
+            BufferedImage.TYPE_INT_RGB);
+        int curIter = iters;
+        int rgbColor, hsbColor;
+        double cx, cy;
+        double deltaX = cRect.getWidth() / (imageWidth - 1);
+        double deltaY = cRect.getHeight() / (imageHeight - 1);
+        double fraction;
+        // Loop over points in the image
+        for(int row = 0; row < imageHeight; row++) {
+            cy = cRect.getMinY() + deltaY * row;
+            for(int col = 0; col < imageWidth; col++) {
+                cx = cRect.getMinX() + deltaX * col;
+                curIter = getIters(cx, cy);
+                fraction = (double)curIter / (iters - 1);
+                rgbColor = curIter == 0 ? 0 : ColorScheme
+                    .toColorInt(colorScheme.getStoredColor(fraction));
+                hsbColor = applyHSB(rgbColor);
+                image.setRGB(col, row, hsbColor);
+                // // DEBUG
+                // if(row == 0 && col == 0) {
+                // System.out.println("curIter=" + curIter + " fraction="
+                // + fraction + " rgbColor="
+                // + String.format("%08x", rgbColor) + " hsbColor="
+                // + String.format("%08x", hsbColor));
+                // }
+            }
+        }
+        return image;
+    }
+
+    /**
+     * Gets the number of iterations for the given values of cx and cy
+     * corresponding to a single point in the image.
+     * 
+     * @param cx
+     * @param cy
+     * @return
+     */
+    public int getIters(double cx, double cy) {
+        int curIter = iters;
+        Point2D z = new Point2D.Double(0, 0);
+        double r = z.getX() * z.getX() + z.getY() * z.getY();
+        double rMax2 = rMax * rMax;
+        while(r < rMax2 && curIter > 0) {
+            system.nextZ(z, cx, cy);
+            r = z.getX() * z.getX() + z.getY() * z.getY();
+            curIter--;
+        }
+        return curIter;
     }
 
     /**
@@ -175,63 +239,6 @@ public class FractalModel implements Cloneable
      */
     public Rectangle2D getcRectDefaultClone() {
         return (Rectangle2D)CRECT_DEFAULT.clone();
-    }
-
-    /**
-     * Calculates a new BufferedImage using the current settings.
-     * 
-     * @return
-     */
-    public BufferedImage getImage() {
-        // // DEBUG
-        // System.out.println("draw: fm=" + this);
-        Rectangle2D cRect = this.getcRect();
-        int iters = this.getIters();
-        int imageWidth = this.getImageWidth();
-        int imageHeight = this.getImageHeight();
-        BufferedImage image = new BufferedImage(imageWidth, imageHeight,
-            BufferedImage.TYPE_INT_RGB);
-        int curIter = iters;
-        int rgbColor, hsbColor;
-        double cx, cy;
-        double deltaX = cRect.getWidth() / (imageWidth - 1);
-        double deltaY = cRect.getHeight() / (imageHeight - 1);
-        double fraction;
-        for(int row = 0; row < imageHeight; row++) {
-            cy = cRect.getMinY() + deltaY * row;
-            for(int col = 0; col < imageWidth; col++) {
-                cx = cRect.getMinX() + deltaX * col;
-                curIter = getIters(cx, cy);
-                fraction = (double)curIter / (iters - 1);
-                rgbColor = curIter == 0 ? 0 : ColorScheme
-                    .toColorInt(colorScheme.getStoredColor(fraction * .80));
-                hsbColor = applyHSB(rgbColor);
-                image.setRGB(col, row, hsbColor);
-            }
-        }
-        return image;
-    }
-
-    /**
-     * Gets the number of iterations for the given values of cx and cy
-     * corresponding to a single point in the image.
-     * 
-     * @param cx
-     * @param cy
-     * @return
-     */
-    public int getIters(double cx, double cy) {
-        int curIter = iters;
-        double zx, zy;
-        double[] next;
-        zx = zy = 0;
-        while(zx * zx + zy * zy < rMax && curIter > 0) {
-            next = system.nextZ(zx, zy, cx, cy);
-            zx = next[0];
-            zy = next[1];
-            curIter--;
-        }
-        return curIter;
     }
 
     /**

@@ -17,22 +17,32 @@ public interface IConstants
     public static final int SCHEME_REVERSE_LINEAR = 2;
     public static final int SCHEME_BW = 3;
     public static final int SCHEME_GRAYSCALE = 4;
+    public static final int SCHEME_REPEAT8 = 5;
     public static final String[][] colorSchemeValues = {
         {"Rainbow", Integer.toString(SCHEME_RAINBOW)},
         {"Linear", Integer.toString(SCHEME_LINEAR)},
         {"Reverse Linear", Integer.toString(SCHEME_REVERSE_LINEAR)},
         {"Black & White", Integer.toString(SCHEME_BW)},
-        {"Grayscale", Integer.toString(SCHEME_GRAYSCALE)},};
+        {"Grayscale", Integer.toString(SCHEME_GRAYSCALE)},
+        {"Repeat 8", Integer.toString(SCHEME_REPEAT8)},};
     public static final int N_COLOR_SCHEMES = colorSchemeValues.length;
 
     // Used for system selection
     // Change FractalBrowser.setSystem and FractalSystems when changes are
     // made
-    public static final int IFS_MANDELBRODT = 0;
+    public static final int IFS_MANDELBROT = 0;
     public static final int IFS_DRAGON = 1;
+    public static final int IFS_COS = 2;
+    public static final int IFS_SIN = 3;
+    public static final int IFS_COSH = 4;
+    public static final int IFS_SINH = 5;
     public static final String[][] systemValues = {
-        {"Mandelbrodt", Integer.toString(IFS_MANDELBRODT)},
-        {"Dragon", Integer.toString(IFS_DRAGON)},};
+        {"Mandelbrot", Integer.toString(IFS_MANDELBROT)},
+        {"Dragon", Integer.toString(IFS_DRAGON)},
+        {"Cosine", Integer.toString(IFS_COS)},
+        {"Sine", Integer.toString(IFS_SIN)},
+        {"Hyperbolic Cosine", Integer.toString(IFS_COSH)},
+        {"Hyperbolic Sine", Integer.toString(IFS_SINH)},};
     public static final int N_SYSTEMS = systemValues.length;
 
     // Used for undo/redo

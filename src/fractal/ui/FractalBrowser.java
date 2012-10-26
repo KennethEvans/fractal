@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
@@ -232,6 +233,9 @@ public class FractalBrowser extends JFrame implements IConstants
         // Initialize the UI
         uiInit();
 
+        // Keyboard
+        mapKeyboard();
+
         // Menus
         menuInit();
 
@@ -294,8 +298,7 @@ public class FractalBrowser extends JFrame implements IConstants
                     double cx = point.getX();
                     double cy = point.getY();
                     int itersMax = fm.getIters();
-                    int iters = itersMax
-                        - fm.getIters(cx, cy);
+                    int iters = itersMax - fm.getIters(cx, cy);
                     String msg = String.format("Cx=%g Cy=%g iters=%d/%d", cx,
                         cy, iters, itersMax);
 
@@ -412,9 +415,6 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
 
-        // Separator
-        toolBar.addSeparator();
-
         // Zoom button
         button = makeToolBarButton("/resources/zoom.gif", "Zoom controls",
             "Zoom Controls");
@@ -423,6 +423,9 @@ public class FractalBrowser extends JFrame implements IConstants
                 resetControlPanel(ControlPanelMode.ZOOM);
             }
         });
+
+        // Separator
+        toolBar.addSeparator();
 
         // Colors button
         button = makeToolBarButton("/resources/colors.png", "Color controls",
@@ -443,8 +446,8 @@ public class FractalBrowser extends JFrame implements IConstants
         });
 
         // System button
-        button = makeToolBarButton("/resources/system.png", "System controls",
-            "SystemControls");
+        button = makeToolBarButton("/resources/system.png",
+            "IFS (Interated Function System) controls", "SystemControls");
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 resetControlPanel(ControlPanelMode.SYSTEM);
@@ -535,77 +538,18 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
 
-        JLabel label = new JLabel("Iters: ");
-        label.setToolTipText("The maximum number of iterations");
-        panel.add(label);
-
-        itersText = new JTextField(8);
-        panel.add(itersText);
-        itersText.setName("Iters");
-        itersText.setText(Integer.toString(fm.getIters()));
-        itersText.setToolTipText(label.getToolTipText());
-        itersText.addActionListener(new ActionListener() {
+        // Custom button
+        button = new JButton("Custom...");
+        panel.add(button);
+        button.setToolTipText("Brings up a dialog to specify the region");
+        button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-                if(itersText != null) {
-                    String text = itersText.getText();
-                    if(itersText.equals(itersLastValue)) {
-                        return;
-                    }
-                    try {
-                        fm.setIters(Integer.parseInt(text));
-                        saveComponentState(itersText, itersLastValue, text);
-                        draw();
-                    } catch(NumberFormatException ex) {
-                        Utils.excMsg("Error getting Iters", ex);
-                    }
-                    itersText.setText(Integer.toString(fm.getIters()));
-                    itersLastValue = itersText.getText();
-                }
-            }
-        });
-
-        label = new JLabel("R Max: ");
-        label.setToolTipText("The escape radius");
-        panel.add(label);
-
-        rMaxText = new JTextField(8);
-        panel.add(rMaxText);
-        rMaxText.setName("R Max");
-        rMaxText.setText(String.format("%.3f", fm.getrMax()));
-        rMaxText.setToolTipText(label.getToolTipText());
-        rMaxText.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                if(rMaxText != null) {
-                    String text = rMaxText.getText();
-                    if(rMaxText.equals(rMaxLastValue)) {
-                        return;
-                    }
-                    try {
-                        fm.setrMax(Integer.parseInt(text));
-                        saveComponentState(rMaxText, rMaxLastValue, text);
-                        draw();
-                    } catch(NumberFormatException ex) {
-                        Utils.excMsg("Error getting rMax", ex);
-                    }
-                    rMaxText.setText(Double.toString(fm.getrMax()));
-                    rMaxLastValue = rMaxText.getText();
-                }
+                customRegion();
             }
         });
 
         // Resize button
         button = new JButton("Resize");
-        button.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK),
-            "resetRegion");
-        button.getActionMap().put("resetRegion", new AbstractAction() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                resize();
-            }
-        });
         panel.add(button);
         button
             .setToolTipText("Resize the region after dragging to set a selection");
@@ -749,6 +693,64 @@ public class FractalBrowser extends JFrame implements IConstants
             public void actionPerformed(ActionEvent ev) {
                 setSystem(systemCombo.getSelectedIndex());
                 draw();
+            }
+        });
+
+        JLabel label = new JLabel("Iters: ");
+        label.setToolTipText("The maximum number of iterations");
+        panel.add(label);
+
+        itersText = new JTextField(8);
+        panel.add(itersText);
+        itersText.setName("Iters");
+        itersText.setText(Integer.toString(fm.getIters()));
+        itersText.setToolTipText(label.getToolTipText());
+        itersText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(itersText != null) {
+                    String text = itersText.getText();
+                    if(itersText.equals(itersLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setIters(Integer.parseInt(text));
+                        saveComponentState(itersText, itersLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting Iters", ex);
+                    }
+                    itersText.setText(Integer.toString(fm.getIters()));
+                    itersLastValue = itersText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("R Max: ");
+        label.setToolTipText("The escape radius");
+        panel.add(label);
+
+        rMaxText = new JTextField(8);
+        panel.add(rMaxText);
+        rMaxText.setName("R Max");
+        rMaxText.setText(String.format("%.3f", fm.getrMax()));
+        rMaxText.setToolTipText(label.getToolTipText());
+        rMaxText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(rMaxText != null) {
+                    String text = rMaxText.getText();
+                    if(rMaxText.equals(rMaxLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setrMax(Double.parseDouble(text));
+                        saveComponentState(rMaxText, rMaxLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting rMax", ex);
+                    }
+                    rMaxText.setText(Double.toString(fm.getrMax()));
+                    rMaxLastValue = rMaxText.getText();
+                }
             }
         });
 
@@ -1468,6 +1470,28 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
+     * Bring up a dialog to set the region.
+     */
+    public void customRegion() {
+        CustomRegionDialog dialog = new CustomRegionDialog(this, fm.getcRect());
+        dialog.setModalityType(Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        URL url = FractalBrowser.class
+            .getResource("/resources/FractalBrowser.32x32.png");
+        if(url != null) {
+            dialog.setIconImage(new ImageIcon(url).getImage());
+        }
+        dialog.setVisible(true);
+        Rectangle2D cRectNew = dialog.getValue();
+        if(cRectNew != null) {
+            Rectangle2D cRect = fm.getcRect();
+            cRect.setRect(cRectNew);
+            saveRegionState();
+            draw();
+        }
+    }
+
+    /**
      * Implements opening a file.
      */
     private void openFile() {
@@ -1805,6 +1829,9 @@ public class FractalBrowser extends JFrame implements IConstants
                 colorSchemes[index] = ColorSchemes
                     .makeGrayscaleScheme(N_COLORS);
                 break;
+            case SCHEME_REPEAT8:
+                colorSchemes[index] = ColorSchemes.makeRepeat8Scheme(N_COLORS);
+                break;
             }
         }
         colorScheme = colorSchemes[index];
@@ -1828,11 +1855,23 @@ public class FractalBrowser extends JFrame implements IConstants
         }
         if(systems[index] == null) {
             switch(index) {
-            case IFS_MANDELBRODT:
-                systems[index] = FractalSystems.makeMandelbrodt();
+            case IFS_MANDELBROT:
+                systems[index] = FractalSystems.makeMandelbrot();
                 break;
             case IFS_DRAGON:
                 systems[index] = FractalSystems.makeDragon();
+                break;
+            case IFS_COS:
+                systems[index] = FractalSystems.makeCosine();
+                break;
+            case IFS_SIN:
+                systems[index] = FractalSystems.makeSine();
+                break;
+            case IFS_COSH:
+                systems[index] = FractalSystems.makeHyperbolicCosine();
+                break;
+            case IFS_SINH:
+                systems[index] = FractalSystems.makeHyperbolicSine();
                 break;
             }
         }
@@ -1932,6 +1971,102 @@ public class FractalBrowser extends JFrame implements IConstants
      */
     public static String getVersionString() {
         return VERSION_STRING;
+    }
+
+    private void mapKeyboard() {
+        JComponent contentPane = (JComponent)getContentPane();
+
+        // Ctrl-R
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK),
+            "resetRegion");
+        contentPane.getActionMap().put("resetRegion", new AbstractAction() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resize();
+            }
+        });
+
+        // C for Colors
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('c'), "colorsControlPanel");
+        contentPane.getActionMap().put("colorsControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.COLORS);
+                }
+            });
+
+        // I for IFS
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('i'), "systemControlPanel");
+        contentPane.getActionMap().put("systemControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.SYSTEM);
+                }
+            });
+
+        // R for Region
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('r'), "resizeControlPanel");
+        contentPane.getActionMap().put("resizeControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.REGION);
+                }
+            });
+
+        // S for Size
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('s'), "sizeControlPanel");
+        contentPane.getActionMap().put("sizeControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.SIZE);
+                }
+            });
+
+        // R for Region
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('r'), "resizeControlPanel");
+        contentPane.getActionMap().put("resizeControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.REGION);
+                }
+            });
+
+        // Z for Zoom
+        contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+            KeyStroke.getKeyStroke('z'), "zoomControlPanel");
+        contentPane.getActionMap().put("zoomControlPanel",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    resetControlPanel(ControlPanelMode.ZOOM);
+                }
+            });
+
     }
 
     /**

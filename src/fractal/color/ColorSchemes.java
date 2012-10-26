@@ -12,7 +12,7 @@ public class ColorSchemes
     public static ColorScheme makeRainbowScheme(int nColors) {
         ColorScheme scheme = new ColorScheme("Rainbow", nColors) {
             public Color defineColor(int index, int nColors) {
-                if(nColors <= 1) {
+                if(index <= 1) {
                     return Color.BLACK;
                 }
                 Color color = null;
@@ -74,7 +74,7 @@ public class ColorSchemes
     public static ColorScheme makeLinearScheme(int nColors) {
         ColorScheme scheme = new ColorScheme("Linear", nColors) {
             public Color defineColor(int index, int nColors) {
-                if(nColors <= 1) {
+                if(index <= 1) {
                     return Color.BLACK;
                 }
                 int nRGBColors = 256 * 256 * 256;
@@ -89,16 +89,19 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeReverseLinearScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme("Reverse Linear",nColors) {
+        ColorScheme scheme = new ColorScheme("Reverse Linear", nColors) {
             public Color defineColor(int index, int nColors) {
-                if(nColors <= 1) {
+                if(index <= 1) {
                     return Color.BLACK;
                 }
                 int nRGBColors = 256 * 256 * 256;
-                int rgb = nRGBColors - 1 - index * (nRGBColors - 1)
-                    / (nColors - 1);
+                int rgb = index * (nRGBColors - 1) / (nColors - 1);
                 if(rgb >= nRGBColors) {
                     rgb = nRGBColors - 1;
+                }
+                rgb = nRGBColors - rgb;
+                if(rgb > nRGBColors) {
+                    rgb = nRGBColors;
                 }
                 if(rgb < 0) {
                     rgb = 0;
@@ -110,7 +113,7 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeBWScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme("B&W",nColors) {
+        ColorScheme scheme = new ColorScheme("B&W", nColors) {
             public Color defineColor(int index, int nColors) {
                 if(index % 2 == 0) {
                     return Color.BLACK;
@@ -123,9 +126,9 @@ public class ColorSchemes
     }
 
     public static ColorScheme makeGrayscaleScheme(int nColors) {
-        ColorScheme scheme = new ColorScheme("Grayscale",nColors) {
+        ColorScheme scheme = new ColorScheme("Grayscale", nColors) {
             public Color defineColor(int index, int nColors) {
-                if(nColors <= 1) {
+                if(index <= 1) {
                     return Color.BLACK;
                 }
                 int gray = index * 255 / (nColors - 1);
@@ -136,4 +139,25 @@ public class ColorSchemes
         return scheme;
     }
 
+    public static ColorScheme makeRepeat8Scheme(int nColors) {
+        ColorScheme scheme = new ColorScheme("Repeat 8", nColors) {
+            public Color defineColor(int index, int nColors) {
+                if(index <= 1) {
+                    return Color.BLACK;
+                }
+                Color[] colors = {Color.RED, Color.MAGENTA, Color.PINK,
+                    Color.ORANGE, Color.YELLOW, Color.GREEN, Color.CYAN,
+                    Color.BLUE,};
+//                if(index == 2) {
+//                    for(int i = 0; i < colors.length; i++) {
+//                        System.out.println("arrayIndex=" + i + " " + colors[i]);
+//                    }
+//                }
+//                System.out.println(index + " " + (index % colors.length) + " "
+//                    + colors[index % colors.length]);
+                return colors[index % colors.length];
+            }
+        };
+        return scheme;
+    }
 }
