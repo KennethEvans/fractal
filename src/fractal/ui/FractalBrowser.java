@@ -113,6 +113,8 @@ public class FractalBrowser extends JFrame implements IConstants
     private String hueLastValue = Double.toString(fm.getHue());
     private String saturationLastValue = Double.toString(fm.getSaturation());
     private String brightnessLastValue = Double.toString(fm.getBrightness());
+    private String fMinLastValue = Double.toString(fm.getfMin());
+    private String fMaxLastValue = Double.toString(fm.getfMax());
 
     private ColorScheme[] colorSchemes = new ColorScheme[N_COLOR_SCHEMES];
     private ColorScheme colorScheme;
@@ -176,6 +178,8 @@ public class FractalBrowser extends JFrame implements IConstants
     private JTextField hText;
     private JTextField sText;
     private JTextField bText;
+    private JTextField fMinText;
+    private JTextField fMaxText;
     private JComboBox colorSchemeCombo;
     private JComboBox systemCombo;
     private JMenuItem menuEditUndo = new JMenuItem("Undo");
@@ -848,7 +852,7 @@ public class FractalBrowser extends JFrame implements IConstants
         label.setToolTipText("Hue, the angle in degrees on the color wheel");
         panel.add(label);
 
-        hText = new JTextField(8);
+        hText = new JTextField(4);
         panel.add(hText);
         hText.setName("Hue");
         hText.setText(String.format("%.3f", fm.getHue()));
@@ -877,7 +881,7 @@ public class FractalBrowser extends JFrame implements IConstants
         label.setToolTipText("Saturation, 1 is no change, 0 is B&W");
         panel.add(label);
 
-        sText = new JTextField(8);
+        sText = new JTextField(4);
         panel.add(sText);
         sText.setName("Saturation");
         sText.setText(String.format("%.3f", fm.getSaturation()));
@@ -906,7 +910,7 @@ public class FractalBrowser extends JFrame implements IConstants
         label.setToolTipText("Brightness, 1 is no change, 0 is black");
         panel.add(label);
 
-        bText = new JTextField(8);
+        bText = new JTextField(4);
         panel.add(bText);
         bText.setName("Brightness");
         bText.setText(String.format("%.3f", fm.getBrightness()));
@@ -927,6 +931,66 @@ public class FractalBrowser extends JFrame implements IConstants
                     }
                     bText.setText(Float.toString(fm.getBrightness()));
                     brightnessLastValue = bText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("fMin: ");
+        label.setToolTipText("Minimum fraction of color scheme "
+            + "to use (0-1)");
+        panel.add(label);
+
+        fMinText = new JTextField(4);
+        panel.add(fMinText);
+        fMinText.setName("fMin");
+        fMinText.setText(String.format("%.3f", fm.getfMin()));
+        fMinText.setToolTipText(label.getToolTipText());
+        fMinText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(fMinText != null) {
+                    String text = fMinText.getText();
+                    if(fMinText.equals(fMinLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setfMin(Float.parseFloat(text));
+                        saveComponentState(fMinText, fMinLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting fMin", ex);
+                    }
+                    fMinText.setText(Float.toString(fm.getfMin()));
+                    fMinLastValue = fMinText.getText();
+                }
+            }
+        });
+
+        label = new JLabel("fMax: ");
+        label.setToolTipText("Maximum fraction of color scheme "
+            + "to use (0-1)");
+        panel.add(label);
+
+        fMaxText = new JTextField(4);
+        panel.add(fMaxText);
+        fMaxText.setName("fMax");
+        fMaxText.setText(String.format("%.3f", fm.getfMax()));
+        fMaxText.setToolTipText(label.getToolTipText());
+        fMaxText.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+                if(fMaxText != null) {
+                    String text = fMaxText.getText();
+                    if(fMaxText.equals(fMaxLastValue)) {
+                        return;
+                    }
+                    try {
+                        fm.setfMax(Float.parseFloat(text));
+                        saveComponentState(fMaxText, fMaxLastValue, text);
+                        draw();
+                    } catch(NumberFormatException ex) {
+                        Utils.excMsg("Error getting fMax", ex);
+                    }
+                    fMaxText.setText(Float.toString(fm.getfMax()));
+                    fMaxLastValue = fMaxText.getText();
                 }
             }
         });

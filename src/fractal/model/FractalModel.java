@@ -31,6 +31,8 @@ public class FractalModel implements Cloneable
     private static float H_DEFAULT = 0.0F;
     private static float S_DEFAULT = 1.0F;
     private static float B_DEFAULT = 1.0F;
+    private static float FMIN_DEFAULT = 0.0F;
+    private static float FMAX_DEFAULT = 1.0F;
 
     private static final int N_COLORS_DEFAULT = 1024;
 
@@ -44,6 +46,8 @@ public class FractalModel implements Cloneable
     private float hue = H_DEFAULT;
     private float saturation = S_DEFAULT;
     private float brightness = B_DEFAULT;
+    private float fMin = FMIN_DEFAULT;
+    private float fMax = FMAX_DEFAULT;
 
     // private int nColors = colorScheme.getNColors();
 
@@ -105,7 +109,8 @@ public class FractalModel implements Cloneable
                     rgbColor = curIter == 0 ? 0 : ColorScheme
                         .toColorInt(colorScheme.defineColor(curIter));
                 } else {
-                    fraction = (double)curIter / (iters - 1);
+                    fraction = fMin + (double)curIter / (iters - 1)
+                        * (fMax - fMin);
                     rgbColor = curIter == 0 ? 0 : ColorScheme
                         .toColorInt(colorScheme.getStoredColor(fraction));
                 }
@@ -430,6 +435,46 @@ public class FractalModel implements Cloneable
      */
     public void setBrightness(float brightness) {
         this.brightness = brightness;
+    }
+
+    /**
+     * @return The value of fMin.
+     */
+    public float getfMin() {
+        return fMin;
+    }
+
+    /**
+     * @param fMin The new value for fMin.
+     */
+    public void setfMin(float fMin) {
+        if(fMin < 0) {
+            fMin = 0;
+        }
+        if(fMin > 1) {
+            fMin = 1;
+        }
+        this.fMin = fMin;
+    }
+
+    /**
+     * @return The value of fMax.
+     */
+    public float getfMax() {
+        return fMax;
+    }
+
+    /**
+     * @param fMax The new value for fMax.
+     */
+    public void setfMax(float fMax) {
+        if(fMin < 0) {
+            fMin = 0;
+        }
+        if(fMin > 1) {
+            fMin = 1;
+        }
+        this.fMax = fMax;
     }
 
 }
