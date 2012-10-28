@@ -14,10 +14,10 @@
   until a more detailed help manual is created. </p>
 <p>The calculations are examples for several Iterated Function Systems (IFS). They are based on sequences determined by recursion relations of the form:</p>
         <blockquote>
-          <p> z(i+1) = f(z(i)) + c</p>
+          <p> z <sub>i + 1</sub> = f ( z <sub>i</sub> , c )</p>
         </blockquote>
-        <p>where z, f(z), and c are complex numbers. c is a constant and f(z) is some function of z, depending on the IFS chosen. z(0) = 0. The points in the image correspond to different values of c with the real part along the horizontal axis and the imaginary part along the vertical axis. The colors depend on the number of iterations required until the size (technically, modulus) of z exceeds a given value (R Max). If that has not occurred after the maximum number of iterations (Iters), then the color is black. Several color scheme mappings are available. </p>
-<p>Fractal Browser is also an image browser. You can open images, and  you can also drag images into the window. You can do things like Save As, Copy, Paste, Print, Zoom, and Toggle fitting the image to the current window. There are also image manipulation commands in the Image menu. These  work on any image. The first buttons on the toolbar also operate on any image. These include  Save As, Copy, Paste, and Toggle fitting the image  to the current window, as well as the controls invoked by the Zoom controls button.</p>
+        <p>where z, f(z, c), and c are complex numbers. c is a constant, and f(z, c) is some function of z and c, depending on the IFS chosen. z(0) = 0. The points in the image correspond to different values of c with the real part along the horizontal axis and the imaginary part along the vertical axis. The colors depend on the number of iterations required until the size (technically, modulus) of z exceeds a given value (R Max). If that has not occurred after the maximum number of iterations (Iters), then the color is black. Several color scheme mappings are available. </p>
+        <p>Fractal Browser is also an image browser. You can open images, and  you can also drag images into the window. You can do things like Save As, Copy, Paste, Print, Zoom, and Toggle fitting the image to the current window. There are also image manipulation commands in the Image menu. These  work on any image. The first buttons on the toolbar also operate on any image. These include  Save As, Copy, Paste, and Toggle fitting the image  to the current window, as well as the controls invoked by the Zoom controls button.</p>
 <p>When doing fractals, the general image controls may be appropriate to use before saving, but their operation will be lost when a new image is calculated. However, any image zooming and fitting to the current window should be maintained. </p>
 <p> The fractal controls are different because they cause a new image to be calculated. These include the Color Controls, Size Controls, System Controls, and Region Controls buttons. These buttons change the Control Panel at the end of the toolbar to controls specific to that category. Using the controls in the Control Panel cause the image to be recalculated. The Undo and Redo commands on the edit menu also cause recalculation. Any old image, including ones you have opened,  and image modifications will be lost. </p>
 <p>Large image sizes can take a long time to calculate. There is an option in the Size Controls to disable recalculating if you wish to do several operations before making a single recalculation. When changing the image width or height it will ask you if you want to defer calculation, since often both of these are often changed at once. </p>
@@ -26,7 +26,46 @@
   whether Java Advanced Imaging JAI and JAI ImageIO) is 
   installed.  You can see the available formats under the 
   Info menu. The extension you use when entering the file
-  name to be saved determines the type.  Saving as .jpg may give a low compression. It uses the Java default, which is not always sensible. The program may be fixed in the future so you can specify the compression. Until then it is suggested you use .png. It is also wise to check the save was successful. Images saved with an invalid extension may be empty or JPEG images may not have the colors you want. </p>
+  name to be saved determines the type.  Saving as .jpg may give a low compression. It uses the Java default, which is not always sensible. The program may be fixed in the future so you can specify the compression. Until then it is suggested you use .png. It is also wise to check the save was successful. Images saved with an invalid extension may be empty or JPEG images may not have the colors you want.</p>
+<h3>IFS Recursion Functions </h3>
+<table width="80%" border="1" align="center" cellspacing="5">
+    <tr>
+    <th width="50%" scope="col"><div align="left">Name</div></th>
+    <th width="50%" scope="col">f(z, c)</th>
+  </tr>
+  <tr>
+    <td>Mandelbrot</td>
+    <td><div align="center">z<sup>2</sup> + c </div></td>
+  </tr>
+  <tr>
+    <td>Cubic</td>
+    <td><div align="center">z<sup>3</sup> + c </div></td>
+  </tr>
+  <tr>
+    <td>Quartic</td>
+    <td><div align="center">z<sup>4</sup> + c </div></td>
+  </tr>
+  <tr>
+    <td>Poly</td>
+    <td><div align="center">c (1 - z <sup>2</sup>) </div></td>
+  </tr>
+  <tr>
+    <td>Cosine</td>
+    <td><div align="center">cos(z) + c </div></td>
+  </tr>
+  <tr>
+    <td>Sine</td>
+    <td><div align="center">sin(z) + c </div></td>
+  </tr>
+  <tr>
+    <td>Hyperbolic Sine </td>
+    <td><div align="center">cosh(z) + c </div></td>
+  </tr>
+  <tr>
+    <td>Hyperbolic Cosine </td>
+    <td><div align="center">sinh(z) + c </div></td>
+  </tr>
+</table>
 <h3>Accelerator keys:</h3>
 <ul>
   <li>Copy: Ctrl-C  (Image) </li>

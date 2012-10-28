@@ -1949,7 +1949,14 @@ public class FractalBrowser extends JFrame implements IConstants
             case IFS_MANDELBROT:
                 systems[index] = FractalSystems.makeMandelbrot();
                 break;
-            case IFS_DRAGON:
+            case IFS_CUBIC:
+                systems[index] = FractalSystems.makeCubic();
+                break;
+            case IFS_QUARTIC:
+                systems[index] = FractalSystems.makeQuartic();
+                break;
+            case IFS_POLY1:
+                // systems[index] = FractalSystems.makeDragon2();
                 systems[index] = FractalSystems.makeDragon();
                 break;
             case IFS_COS:
