@@ -8,6 +8,7 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
+import java.awt.color.ICC_Profile;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
@@ -16,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.Raster;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
 import java.io.File;
@@ -133,8 +135,8 @@ public class FractalBrowser extends JFrame implements IConstants
     private JMenuBar menuBar = new JMenuBar();
     private JMenu menuFile = new JMenu();
     private JMenuItem menuFileOpen = new JMenuItem();
-    private JMenuItem menuDirectoryOpen = new JMenuItem();
     private JMenuItem menuFileSaveAs = new JMenuItem();
+    private JMenuItem menuFileSaveAsProfile = new JMenuItem();
     private JMenuItem menuFilePrint = new JMenuItem();
     private JMenuItem menuFilePrintPreview = new JMenuItem();
     private JMenuItem menuFilePageSetup = new JMenuItem();
@@ -1035,15 +1037,6 @@ public class FractalBrowser extends JFrame implements IConstants
         menuFile.setText("File");
         menuBar.add(menuFile);
 
-        // Directory Open
-        menuDirectoryOpen.setText("Open Directory...");
-        menuDirectoryOpen.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                openDirectory();
-            }
-        });
-        menuFile.add(menuDirectoryOpen);
-
         // File Open
         menuFileOpen.setText("Open File...");
         menuFileOpen.addActionListener(new ActionListener() {
@@ -1063,6 +1056,16 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
         menuFile.add(menuFileSaveAs);
+
+        // TODO
+        // File Save as with profile
+        menuFileSaveAsProfile.setText("Save As With Profile...");
+        menuFileSaveAsProfile.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                saveAsWithProfile();
+            }
+        });
+        menuFile.add(menuFileSaveAsProfile);
 
         // File Print
         menuFilePrint.setText("Print...");
@@ -1427,6 +1430,17 @@ public class FractalBrowser extends JFrame implements IConstants
         });
         menuImage.add(menuImageRestore);
 
+        // DEBUG
+        // Test
+        JMenuItem item = new JMenuItem();
+        item.setText("Test");
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                test();
+            }
+        });
+        menuImage.add(item);
+
         // Help
         menuHelp.setText("Help");
         menuBar.add(menuHelp);
@@ -1591,32 +1605,6 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Implements opening a directory.
-     */
-    private void openDirectory() {
-        if(displayPanel == null) return;
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if(currentDir != null) {
-            File file = new File(currentDir);
-            // File parent = file.getParentFile();
-            // if(parent != null && parent.exists()) {
-            // chooser.setCurrentDirectory(parent);
-            // } else if(file != null && file.exists()) {
-            // chooser.setCurrentDirectory(file);
-            // }
-            if(file != null && file.exists()) {
-                chooser.setCurrentDirectory(file);
-            }
-        }
-        int result = chooser.showOpenDialog(this);
-        if(result == JFileChooser.APPROVE_OPTION) {
-            // Save the selected path for next time
-            currentDir = chooser.getSelectedFile().getPath();
-        }
-    }
-
-    /**
      * Implements print.
      */
     public void print() {
@@ -1709,7 +1697,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Saves the display frame to a file
+     * Saves the display frame to a file.
      */
     public void saveAs() {
         if(displayPanel == null) return;
@@ -1719,6 +1707,51 @@ public class FractalBrowser extends JFrame implements IConstants
             Utils.errMsg("No image");
             return;
         }
+        Cursor oldCursor = getCursor();
+        try {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            File file = ImageUtils.saveImageToFile(image, currentDir);
+            if(file != null && file.exists()) {
+                imageModel.setFile(file);
+                // Set the currentDirectory based on what was saved
+                File parent = file.getParentFile();
+                if(parent != null && parent.exists()) {
+                    currentDir = parent.getPath();
+                } else {
+                    currentDir = file.getPath();
+                }
+            }
+        } finally {
+            setCursor(oldCursor);
+        }
+    }
+
+    /**
+     * Saves the display frame to a file using a profile.
+     */
+    // TODO
+    public void saveAsWithProfile() {
+        if(displayPanel == null) return;
+        if(imageModel == null) return;
+        BufferedImage image = imageModel.getCurrentImage();
+        if(image == null) {
+            Utils.errMsg("No image");
+            return;
+        }
+
+        // Convert to the profile
+        ICC_Profile profile = null;
+        try {
+            // TODO This is hardcoded for testing
+            profile = ICC_Profile.getInstance(iccFileName);
+        } catch(Exception ex) {
+            Utils.excMsg("Cannot open profile file", ex);
+            return;
+        }
+        Raster data = image.getData();
+        image = ImageUtils.convertProfile(profile, image);
+        image.setData(data);
+
         Cursor oldCursor = getCursor();
         try {
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -1810,7 +1843,15 @@ public class FractalBrowser extends JFrame implements IConstants
      */
     private void imageInfo() {
         if(imageModel == null) return;
-        String info = imageModel.getInfo();
+        String info = imageModel.getInfo() + LS;
+
+        // info += ImageUtils.getMonitorInfo() + LS;
+        // ICC_Profile profile = ImageUtils.getDefaultMonitorProfile();
+        // if(profile != null) {
+        // info += "Monitor ICC Profile="
+        // + ImageUtils.getICCProfileName(profile) + LS;
+        // }
+
         info += fm.getInfo() + LS;
         Utils.infoMsg(info);
     }
@@ -2165,6 +2206,79 @@ public class FractalBrowser extends JFrame implements IConstants
                 }
             });
 
+    }
+
+    // TODO
+    private void test() {
+        // BufferedImage image = fm.getImage();
+        // BufferedImage image = imageModel.getOriginalImage();
+        BufferedImage image = imageModel.getCurrentImage();
+        if(image == null) {
+            Utils.errMsg("Image is null");
+        }
+        int width = image.getWidth();
+        int height = image.getHeight();
+        int[][] dataArray0 = new int[width][height];
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < width; j++) {
+                dataArray0[j][i] = image.getRGB(j, i);
+            }
+        }
+
+        ICC_Profile profile = null;
+        String iccFileName = "C:/Windows/System32/spool/drivers/color/xRite-2012-09-28-6500-2.2-090.icc";
+        try {
+            profile = ICC_Profile.getInstance(iccFileName);
+        } catch(Exception ex) {
+            Utils.excMsg("Cannot open profile file", ex);
+            return;
+        }
+
+        // Find the ICC profile used
+        String info = "Profile read: " + ImageUtils.getICCProfileName(profile)
+            + LS;
+        image = ImageUtils.convertProfile(profile, image);
+        info += LS;
+        info += "Original Image: "
+            + String.format("%08x", imageModel.getOriginalImage().hashCode())
+            + LS;
+        info += "Current Image: "
+            + String.format("%08x", imageModel.getCurrentImage().hashCode())
+            + LS;
+        info += "Converted Image: " + String.format("%08x", image.hashCode())
+            + LS;
+        info += LS;
+        String desc = ImageUtils.getICCProfileName(image);
+        if(desc != null) {
+            info += "ICC Profile=" + desc + LS;
+        }
+        desc = ImageUtils.getICCProfileName(imageModel.getOriginalImage());
+        if(desc != null) {
+            info += "ICC Profile (Model Original)=" + desc + LS;
+        }
+        desc = ImageUtils.getICCProfileName(imageModel.getCurrentImage());
+        if(desc != null) {
+            info += "ICC Profile (Model Current)=" + desc + LS;
+        }
+
+        // Check the values
+        int nDifferent = 0;
+        for(int i = 0; i < height; i++) {
+            for(int j = 0; j < width; j++) {
+                if(dataArray0[j][i] != image.getRGB(j, i)) {
+                    nDifferent++;
+                }
+            }
+        }
+        info += LS;
+        info += "nDifferent=" + nDifferent + "/" + (height * width) + LS;
+
+        if(imagePanel != null) {
+            imagePanel.repaint();
+            imagePanel.revalidate();
+        }
+
+        Utils.infoMsg(info);
     }
 
     /**

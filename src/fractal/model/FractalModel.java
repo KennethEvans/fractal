@@ -6,7 +6,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import net.kenevans.imagemodel.utils.Utils;
-
 import fractal.color.ColorScheme;
 import fractal.color.ColorSchemes;
 

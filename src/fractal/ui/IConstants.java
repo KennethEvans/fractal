@@ -7,6 +7,9 @@ package fractal.ui;
  */
 public interface IConstants
 {
+    // For testing
+    public static final String iccFileName = "C:/Windows/System32/spool/drivers/color/xRite-2012-09-28-6500-2.2-090.icc";
+
     public static final String LS = System.getProperty("line.separator");
 
     // Used for scheme selection
