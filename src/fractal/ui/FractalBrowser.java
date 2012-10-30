@@ -136,7 +136,6 @@ public class FractalBrowser extends JFrame implements IConstants
     private JMenu menuFile = new JMenu();
     private JMenuItem menuFileOpen = new JMenuItem();
     private JMenuItem menuFileSaveAs = new JMenuItem();
-    private JMenuItem menuFileSaveAsProfile = new JMenuItem();
     private JMenuItem menuFilePrint = new JMenuItem();
     private JMenuItem menuFilePrintPreview = new JMenuItem();
     private JMenuItem menuFilePageSetup = new JMenuItem();
@@ -1057,15 +1056,14 @@ public class FractalBrowser extends JFrame implements IConstants
         });
         menuFile.add(menuFileSaveAs);
 
-        // TODO
-        // File Save as with profile
-        menuFileSaveAsProfile.setText("Save As With Profile...");
-        menuFileSaveAsProfile.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                saveAsWithProfile();
-            }
-        });
-        menuFile.add(menuFileSaveAsProfile);
+//        // File Save as with profile
+//        menuFileSaveAsProfile.setText("Save As With Profile...");
+//        menuFileSaveAsProfile.addActionListener(new ActionListener() {
+//            public void actionPerformed(ActionEvent ae) {
+//                saveAsWithProfile();
+//            }
+//        });
+//        menuFile.add(menuFileSaveAsProfile);
 
         // File Print
         menuFilePrint.setText("Print...");
@@ -1430,17 +1428,6 @@ public class FractalBrowser extends JFrame implements IConstants
         });
         menuImage.add(menuImageRestore);
 
-        // DEBUG
-        // Test
-        JMenuItem item = new JMenuItem();
-        item.setText("Test");
-        item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ae) {
-                test();
-            }
-        });
-        menuImage.add(item);
-
         // Help
         menuHelp.setText("Help");
         menuBar.add(menuHelp);
@@ -1583,22 +1570,16 @@ public class FractalBrowser extends JFrame implements IConstants
         }
         int result = chooser.showOpenDialog(this);
         if(result == JFileChooser.APPROVE_OPTION) {
-            // Save the selected path for next time
-            File file = new File(currentDir);
-            File parent = file.getParentFile();
-            if(parent != null && parent.exists()) {
-                chooser.setCurrentDirectory(parent);
-            } else if(file != null && file.exists()) {
-                chooser.setCurrentDirectory(file);
-            }
             Cursor oldCursor = getCursor();
             try {
-                file = chooser.getSelectedFile();
+                File file = chooser.getSelectedFile();
+                // Save the selected path for next time
+                currentDir = chooser.getSelectedFile().getParentFile().getPath();
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 imageModel.readImage(file);
                 fitImage();
                 this.setTitle(file.getPath());
-            } finally {
+             } finally {
                 setCursor(oldCursor);
             }
         }
@@ -2205,80 +2186,6 @@ public class FractalBrowser extends JFrame implements IConstants
                     resetControlPanel(ControlPanelMode.ZOOM);
                 }
             });
-
-    }
-
-    // TODO
-    private void test() {
-        // BufferedImage image = fm.getImage();
-        // BufferedImage image = imageModel.getOriginalImage();
-        BufferedImage image = imageModel.getCurrentImage();
-        if(image == null) {
-            Utils.errMsg("Image is null");
-        }
-        int width = image.getWidth();
-        int height = image.getHeight();
-        int[][] dataArray0 = new int[width][height];
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < width; j++) {
-                dataArray0[j][i] = image.getRGB(j, i);
-            }
-        }
-
-        ICC_Profile profile = null;
-        String iccFileName = "C:/Windows/System32/spool/drivers/color/xRite-2012-09-28-6500-2.2-090.icc";
-        try {
-            profile = ICC_Profile.getInstance(iccFileName);
-        } catch(Exception ex) {
-            Utils.excMsg("Cannot open profile file", ex);
-            return;
-        }
-
-        // Find the ICC profile used
-        String info = "Profile read: " + ImageUtils.getICCProfileName(profile)
-            + LS;
-        image = ImageUtils.convertProfile(profile, image);
-        info += LS;
-        info += "Original Image: "
-            + String.format("%08x", imageModel.getOriginalImage().hashCode())
-            + LS;
-        info += "Current Image: "
-            + String.format("%08x", imageModel.getCurrentImage().hashCode())
-            + LS;
-        info += "Converted Image: " + String.format("%08x", image.hashCode())
-            + LS;
-        info += LS;
-        String desc = ImageUtils.getICCProfileName(image);
-        if(desc != null) {
-            info += "ICC Profile=" + desc + LS;
-        }
-        desc = ImageUtils.getICCProfileName(imageModel.getOriginalImage());
-        if(desc != null) {
-            info += "ICC Profile (Model Original)=" + desc + LS;
-        }
-        desc = ImageUtils.getICCProfileName(imageModel.getCurrentImage());
-        if(desc != null) {
-            info += "ICC Profile (Model Current)=" + desc + LS;
-        }
-
-        // Check the values
-        int nDifferent = 0;
-        for(int i = 0; i < height; i++) {
-            for(int j = 0; j < width; j++) {
-                if(dataArray0[j][i] != image.getRGB(j, i)) {
-                    nDifferent++;
-                }
-            }
-        }
-        info += LS;
-        info += "nDifferent=" + nDifferent + "/" + (height * width) + LS;
-
-        if(imagePanel != null) {
-            imagePanel.repaint();
-            imagePanel.revalidate();
-        }
-
-        Utils.infoMsg(info);
     }
 
     /**
