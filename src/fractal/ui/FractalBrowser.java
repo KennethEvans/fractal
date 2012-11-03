@@ -1,6 +1,7 @@
 package fractal.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
@@ -339,7 +340,44 @@ public class FractalBrowser extends JFrame implements IConstants
         // Display panel
         displayPanel.setLayout(new BorderLayout());
         displayPanel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
-        imagePanel = new ScrolledImagePanel(imageModel, USE_STATUS_BAR);
+        // Make an ImagePanel but override writing the status
+        imagePanel = new ScrolledImagePanel(imageModel, USE_STATUS_BAR) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void mouseDragged(MouseEvent ev) {
+                if(dragging) {
+                    mouseCur = ev.getPoint();
+                    Rectangle newRectangle = new Rectangle();
+                    newRectangle.setFrameFromDiagonal(mouseStart, mouseCur);
+                    setClipRectangle(newRectangle);
+                    if(useStatusBar || statusBar != null || getImage() == null) {
+                        int x = (int)(ev.getX() / zoom);
+                        int y = (int)(ev.getY() / zoom);
+                        int width = (int)(newRectangle.width / zoom);
+                        int height = (int)(newRectangle.height / zoom);
+                        String text = "x=" + x + " y=" + y + " [ " + width
+                            + " x " + height + " ]";
+                        updateStatus(text);
+                    }
+                } else {
+                    mouseMoved(ev);
+                }
+            }
+
+            @Override
+            protected void mouseMoved(MouseEvent ev) {
+                if(useStatusBar || statusBar != null || getImage() == null) {
+                    int x = (int)(ev.getX() / zoom);
+                    int y = (int)(ev.getY() / zoom);
+                    String text = "x=" + x + " y=" + y + " "
+                        + getColorString(x, y);
+                    updateStatus(text);
+                }
+            }
+
+        };
+
         // Always enable crop
         imagePanel.setMode(ScrolledImagePanel.Mode.CROP);
         displayPanel.add(imagePanel);
@@ -1056,14 +1094,14 @@ public class FractalBrowser extends JFrame implements IConstants
         });
         menuFile.add(menuFileSaveAs);
 
-//        // File Save as with profile
-//        menuFileSaveAsProfile.setText("Save As With Profile...");
-//        menuFileSaveAsProfile.addActionListener(new ActionListener() {
-//            public void actionPerformed(ActionEvent ae) {
-//                saveAsWithProfile();
-//            }
-//        });
-//        menuFile.add(menuFileSaveAsProfile);
+        // // File Save as with profile
+        // menuFileSaveAsProfile.setText("Save As With Profile...");
+        // menuFileSaveAsProfile.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent ae) {
+        // saveAsWithProfile();
+        // }
+        // });
+        // menuFile.add(menuFileSaveAsProfile);
 
         // File Print
         menuFilePrint.setText("Print...");
@@ -1574,12 +1612,13 @@ public class FractalBrowser extends JFrame implements IConstants
             try {
                 File file = chooser.getSelectedFile();
                 // Save the selected path for next time
-                currentDir = chooser.getSelectedFile().getParentFile().getPath();
+                currentDir = chooser.getSelectedFile().getParentFile()
+                    .getPath();
                 setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                 imageModel.readImage(file);
                 fitImage();
                 this.setTitle(file.getPath());
-             } finally {
+            } finally {
                 setCursor(oldCursor);
             }
         }
@@ -2186,6 +2225,29 @@ public class FractalBrowser extends JFrame implements IConstants
                     resetControlPanel(ControlPanelMode.ZOOM);
                 }
             });
+    }
+
+    /**
+     * Gets the color of the point at x, y in the currentImage as (rrr, ggg,
+     * bbb).
+     * 
+     * @param x
+     * @param y
+     * @return
+     */
+    public String getColorString(int x, int y) {
+        if(imageModel == null || imageModel.getCurrentImage() == null) {
+            return "";
+        }
+        BufferedImage image = imageModel.getCurrentImage();
+        if(image == null || x < 0 || x >= image.getWidth() || y < 0
+            || y >= image.getHeight()) {
+            return "";
+        }
+        int rgbColor = image.getRGB(x, y);
+        Color color = new Color(rgbColor);
+        return String.format("(%3d, %3d, %3d)", color.getRed(),
+            color.getGreen(), color.getBlue());
     }
 
     /**
