@@ -29,6 +29,7 @@ public class CustomRegionDialog extends JDialog implements IConstants
     Rectangle2D cRectNew;
     Rectangle2D cRect1 = new Rectangle2D.Double(-2.08, -1.20, 3.20, 2.40);
     Rectangle2D cRect2 = new Rectangle2D.Double(-7.00, -8.00, 12.00, 16.00);
+    Rectangle2D cRect3 = new Rectangle2D.Double(-9.00, -9.00, 18.00, 18.00);
 
     JTextField leftText;
     JTextField rightText;
@@ -152,6 +153,16 @@ public class CustomRegionDialog extends JDialog implements IConstants
         button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 reset(cRect2);
+            }
+        });
+        presetsPanel.add(button);
+
+        button = new JButton();
+        button.setText("Preset 3");
+        button.setToolTipText("Set to Preset 3 (Mandelbox).");
+        button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                reset(cRect3);
             }
         });
         presetsPanel.add(button);

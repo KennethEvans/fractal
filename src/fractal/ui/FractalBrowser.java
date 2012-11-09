@@ -2032,6 +2032,12 @@ public class FractalBrowser extends JFrame implements IConstants
             case IFS_SINH:
                 systems[index] = FractalSystems.makeHyperbolicSine();
                 break;
+            case IFS_MANDELBOX1:
+                systems[index] = FractalSystems.makeMandelBox1();
+                break;
+            case IFS_MANDELBOX2:
+                systems[index] = FractalSystems.makeMandelBox2();
+                break;
             }
         }
         system = systems[index];

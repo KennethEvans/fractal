@@ -59,6 +59,8 @@ public interface IConstants
     public static final int IFS_SIN = 5;
     public static final int IFS_COSH = 6;
     public static final int IFS_SINH = 7;
+    public static final int IFS_MANDELBOX1 = 8;
+    public static final int IFS_MANDELBOX2 = 9;
     public static final String[][] systemValues = {
         {"Mandelbrot", Integer.toString(IFS_MANDELBROT)},
         {"Cubic", Integer.toString(IFS_CUBIC)},
@@ -67,7 +69,9 @@ public interface IConstants
         {"Cosine", Integer.toString(IFS_COS)},
         {"Sine", Integer.toString(IFS_SIN)},
         {"Hyperbolic Cosine", Integer.toString(IFS_COSH)},
-        {"Hyperbolic Sine", Integer.toString(IFS_SINH)},};
+        {"Hyperbolic Sine", Integer.toString(IFS_SINH)},
+        {"Mandelbox 2.0", Integer.toString(IFS_MANDELBOX1)},
+        {"Mandelbox -1.5", Integer.toString(IFS_MANDELBOX2)},};
     public static final int N_SYSTEMS = systemValues.length;
 
     // Used for undo/redo

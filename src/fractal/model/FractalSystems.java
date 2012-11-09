@@ -158,4 +158,74 @@ public class FractalSystems
         return sys;
     }
 
+    public static FractalSystem makeMandelBox1() {
+        FractalSystem sys = new FractalSystem("Mandelbox 2.0") {
+            protected final double scale = 2.0;
+
+            @Override
+            public void nextZ(Point2D z, double cx, double cy) {
+                zx = z.getX();
+                zy = z.getY();
+                if(zx > 1) {
+                    zx = 2 - zx;
+                } else if(zx < -1) {
+                    zx = -2 - zx;
+                }
+                if(zy > 1) {
+                    zy = 2 - zy;
+                } else if(zy < -1) {
+                    zy = -2 - zy;
+                }
+                // Magnitude squared
+                tmp1 = z.getX() * z.getX() + z.getY() * z.getY();
+                if(tmp1 < .25) {
+                    zx *= 4;
+                    zy *= 4;
+                } else if(tmp1 < 1) {
+                    zx /= tmp1;
+                    zy /= tmp1;
+                }
+                zx = scale * zx + cx;
+                zy = scale * zy + cy;
+                z.setLocation(zx, zy);
+            }
+        };
+        return sys;
+    }
+
+    public static FractalSystem makeMandelBox2() {
+        FractalSystem sys = new FractalSystem("Mandelbox -1.5") {
+            protected final double scale = -1.5;
+
+            @Override
+            public void nextZ(Point2D z, double cx, double cy) {
+                zx = z.getX();
+                zy = z.getY();
+                if(zx > 1) {
+                    zx = 2 - zx;
+                } else if(zx < -1) {
+                    zx = -2 - zx;
+                }
+                if(zy > 1) {
+                    zy = 2 - zy;
+                } else if(zy < -1) {
+                    zy = -2 - zy;
+                }
+                // Magnitude squared
+                tmp1 = z.getX() * z.getX() + z.getY() * z.getY();
+                if(tmp1 < .25) {
+                    zx *= 4;
+                    zy *= 4;
+                } else if(tmp1 < 1) {
+                    zx /= tmp1;
+                    zy /= tmp1;
+                }
+                zx = scale * zx + cx;
+                zy = scale * zy + cy;
+                z.setLocation(zx, zy);
+            }
+        };
+        return sys;
+    }
+
 }
