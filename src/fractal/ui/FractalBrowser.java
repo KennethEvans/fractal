@@ -46,6 +46,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
@@ -1131,6 +1132,20 @@ public class FractalBrowser extends JFrame implements IConstants
             }
         });
         menuFile.add(menuFilePageSetup);
+        
+        menuFile.add(new JSeparator());
+
+        // Color wheel
+        JMenuItem item = new JMenuItem();
+        item.setText("Color Wheel");
+        item.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ae) {
+                colorWheel();
+            }
+        });
+        menuFile.add(item);
+
+        menuFile.add(new JSeparator());
 
         // File Exit
         menuFileExit.setText("Exit");
@@ -1792,7 +1807,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Saves the display frame to a file
+     * Saves the display frame to a file.
      */
     public boolean save(File file) {
         boolean retVal = false;
@@ -1812,9 +1827,34 @@ public class FractalBrowser extends JFrame implements IConstants
         }
         return retVal;
     }
+    
+    /**
+     * Draws a color wheel instead of the usual draw method.
+     */
+    private void colorWheel() {
+        if(!drawEnabled) {
+            return;
+        }
+        Cursor oldCursor = getCursor();
+        try {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            BufferedImage image = fm.getColorWheel();
+            imageModel.replaceImage(image);
+            if(imagePanel != null) {
+                imagePanel.repaint();
+                imagePanel.revalidate();
+            }
+            // Recalculate the fitImage state
+            fitImage();
+        } catch(Throwable t) {
+            Utils.excMsg("Error drawing image", t);
+        } finally {
+            setCursor(oldCursor);
+        }
+    }
 
     /**
-     * Quits the application
+     * Quits the application.
      */
     private void quit() {
         System.exit(0);
@@ -1842,7 +1882,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * Scales the image according to the fitAlways and fitIfLarger;
+     * Scales the image according to the fitAlways and fitIfLarger.
      */
     private void fitImage() {
         menuImageFit.setSelected(fitIfLarger);
@@ -2050,8 +2090,7 @@ public class FractalBrowser extends JFrame implements IConstants
 
     /**
      * Saves the current fm of the given component for undo/redo.
-     */
-    /**
+     *
      * @param component
      * @param oldValue The old value.
      * @param newValue The new value.
@@ -2118,7 +2157,7 @@ public class FractalBrowser extends JFrame implements IConstants
     }
 
     /**
-     * @param imagePanel the imagePanel to set
+     * @param imagePanel the imagePanel to set.
      */
     public void setImagePanel(ScrolledImagePanel imagePanel) {
         this.imagePanel = imagePanel;

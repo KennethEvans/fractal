@@ -147,6 +147,51 @@ public class FractalModel implements Cloneable
     }
 
     /**
+     * Calculates a new BufferedImage representing a color wheel.
+     * 
+     * @return
+     */
+    public BufferedImage getColorWheel() {
+        int imageWidth = this.getImageWidth();
+        int imageHeight = this.getImageHeight();
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight,
+            BufferedImage.TYPE_INT_RGB);
+        int hsbColor;
+        float x0 = imageWidth / 2;
+        float y0 = imageHeight / 2;
+        float x, y, r, angle;
+        float rmax = imageWidth > imageHeight ? .45F * imageHeight
+            : .45F * imageWidth;
+        float pi = (float)Math.PI;
+        float[] hsbVals = new float[3];
+        // Loop over points in the image
+        for(int row = 0; row < imageHeight; row++) {
+            y = row - y0;
+            for(int col = 0; col < imageWidth; col++) {
+                x = col - x0;
+                r = (float)Math.sqrt(x * x + y * y);
+                angle = (float)Math.atan2(y, x);
+                if(r > rmax) {
+                    hsbColor = 0;
+                } else {
+                    // Hue
+                    hsbVals[0] = .5F * angle / pi;
+                    // Saturation
+                    hsbVals[1] = 1;
+                    // hsbVals[1] = r / rmax;
+                    // Brightness
+                    // hsbVals[2] = 1;
+                    hsbVals[2] = r / rmax;
+                    hsbColor = Color.HSBtoRGB(hsbVals[0], hsbVals[1],
+                        hsbVals[2]);
+                }
+                image.setRGB(col, row, hsbColor);
+            }
+        }
+        return image;
+    }
+
+    /**
      * Changes the fields to the given values.
      * 
      * @param colorScheme
