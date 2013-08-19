@@ -551,6 +551,21 @@ public class FractalBrowser extends JFrame implements IConstants
     protected void createRegionControlPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         controlPanel.add(panel, BorderLayout.LINE_START);
+        
+        // // Test menu attached to a JButton
+        // final JPopupMenu menu = new JPopupMenu();
+        // menu.add(new JMenuItem("Test"));
+        //
+        // final JButton testbutton = new JButton();
+        // testbutton.setText("My Menu");
+        // testbutton.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent ev) {
+        // menu.show(testbutton, testbutton.getBounds().x,
+        // testbutton.getBounds().y
+        // + testbutton.getBounds().height);
+        // }
+        // });
+        // panel.add(testbutton);
 
         // Reset button
         JButton button = new JButton("Reset");
