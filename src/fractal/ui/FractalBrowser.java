@@ -1104,7 +1104,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // File Save as
         menuFileSaveAs.setText("Save As...");
         menuFileSaveAs.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
         menuFileSaveAs.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 saveAs();
@@ -1124,7 +1124,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // File Print
         menuFilePrint.setText("Print...");
         menuFilePrint.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_P, InputEvent.CTRL_DOWN_MASK));
         menuFilePrint.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 print();
@@ -1179,7 +1179,7 @@ public class FractalBrowser extends JFrame implements IConstants
 
         menuEdit.add(menuEditUndo);
         menuEditUndo.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK));
         menuEditUndo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 // // DEBUG
@@ -1210,7 +1210,7 @@ public class FractalBrowser extends JFrame implements IConstants
 
         menuEdit.add(menuEditRedo);
         menuEditRedo.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK));
         menuEditRedo.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
                 // // DEBUG
@@ -1242,7 +1242,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // Edit Copy
         menuEditCopy.setText("Copy");
         menuEditCopy.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_C, InputEvent.CTRL_DOWN_MASK));
         menuEditCopy.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 copy();
@@ -1253,7 +1253,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // Edit Paste
         menuEditPaste.setText("Paste");
         menuEditPaste.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_V, InputEvent.CTRL_DOWN_MASK));
         menuEditPaste.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 paste();
@@ -1264,7 +1264,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // Edit Paste and Print
         menuEditPastePrint.setText("Paste and Print");
         menuEditPastePrint.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_B, InputEvent.CTRL_DOWN_MASK));
         menuEditPastePrint.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
                 paste();
@@ -1477,7 +1477,7 @@ public class FractalBrowser extends JFrame implements IConstants
         // Image Fit
         menuImageFit.setText("Fit Image");
         menuImageFit.setAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_MASK));
+            KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK));
         menuImageFit.setState(fitIfLarger);
         menuImageFit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ae) {
@@ -2201,7 +2201,7 @@ public class FractalBrowser extends JFrame implements IConstants
 
         // Ctrl-R
         contentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_MASK),
+            KeyStroke.getKeyStroke(KeyEvent.VK_R, InputEvent.CTRL_DOWN_MASK),
             "resetRegion");
         contentPane.getActionMap().put("resetRegion", new AbstractAction() {
             private static final long serialVersionUID = 1L;
