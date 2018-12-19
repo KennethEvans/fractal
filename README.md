@@ -2,7 +2,7 @@
 
 Fractal Browser is a Java application that displays Mandelbrot and other similar plots.
 
-See http://kenevans.net/opensource/FractalBrowser/Help/help.htm
+See https://kenevans.net/opensource/FractalBrowser/Help/help.htm
 
 **Installation**
 

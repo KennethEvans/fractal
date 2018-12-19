@@ -717,7 +717,7 @@ public class FractalBrowser extends JFrame implements IConstants
             .setText(drawEnabled ? "Disable Recalc" : "Enable Recalc");
         ;
         drawEnabledButton
-            .setToolTipText("Set whethere drawing will happen after new "
+            .setToolTipText("Set whether drawing will happen after new "
                 + "values are entered");
         panel.add(drawEnabledButton);
         drawEnabledButton.addActionListener(new ActionListener() {

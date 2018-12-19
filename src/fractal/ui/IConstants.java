@@ -36,7 +36,7 @@ public interface IConstants
         {"Repeat 8", Integer.toString(SCHEME_REPEAT8)},
         {"Linear", Integer.toString(SCHEME_LINEAR)},
         {"Reverse Linear", Integer.toString(SCHEME_REVERSE_LINEAR)},
-        {"Beds", Integer.toString(SCHEME_REDS)},
+        {"Reds", Integer.toString(SCHEME_REDS)},
         {"Greens", Integer.toString(SCHEME_GREENS)},
         {"Blues", Integer.toString(SCHEME_BLUES)},
         {"Spring", Integer.toString(SCHEME_SPRING)},
